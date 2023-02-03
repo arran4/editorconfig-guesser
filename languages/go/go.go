@@ -20,6 +20,7 @@ var (
 			"go.sum",
 			"*.go",
 		},
+		ectemplate: ectemplate,
 	}
 )
 
@@ -29,11 +30,12 @@ func init() {
 
 type Language struct {
 	sync.WaitGroup
-	reader  chan *editorconfig_guesser.File
-	errors  []error
-	summary []*editorconfig_guesser.SummaryResult
-	name    string
-	globs   []string
+	reader     chan *editorconfig_guesser.File
+	errors     []error
+	summary    []*editorconfig_guesser.SummaryResult
+	name       string
+	globs      []string
+	ectemplate []byte
 }
 
 func (l *Language) Name() string {
@@ -75,7 +77,7 @@ func (l *Language) Run() {
 				l.summary = append(l.summary, &editorconfig_guesser.SummaryResult{
 					FileGlobs:  []string{gs},
 					Confidence: 1,
-					Template:   bytes.NewBuffer(ectemplate),
+					Template:   bytes.NewBuffer(l.ectemplate),
 					Path:       "/",
 				})
 			} else {
