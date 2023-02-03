@@ -1,8 +1,7 @@
-package generic
+package ecg
 
 import (
 	"bytes"
-	"editorconfig-guesser"
 	"fmt"
 	"path/filepath"
 	"sync"
@@ -18,9 +17,9 @@ func NewPresence(name string, globs []string, ectemplate []byte) *Presence {
 
 type Presence struct {
 	sync.WaitGroup
-	reader     chan *editorconfig_guesser.File
+	reader     chan *File
 	errors     []error
-	summary    []*editorconfig_guesser.SummaryResult
+	summary    []*SummaryResult
 	name       string
 	globs      []string
 	ectemplate []byte
@@ -30,13 +29,13 @@ func (l *Presence) Name() string {
 	return l.name
 }
 
-func (l *Presence) Start() chan *editorconfig_guesser.File {
-	l.reader = make(chan *editorconfig_guesser.File)
+func (l *Presence) Start() chan *File {
+	l.reader = make(chan *File)
 	go l.Run()
 	return l.reader
 }
 
-func (l *Presence) Done() ([]*editorconfig_guesser.SummaryResult, error) {
+func (l *Presence) Done() ([]*SummaryResult, error) {
 	l.WaitGroup.Wait()
 	return l.summary, l.error()
 }
@@ -62,7 +61,7 @@ func (l *Presence) Run() {
 			}
 			matched[gsi] = struct{}{}
 			if len(l.summary) == 0 {
-				l.summary = append(l.summary, &editorconfig_guesser.SummaryResult{
+				l.summary = append(l.summary, &SummaryResult{
 					FileGlobs:  []string{gs},
 					Confidence: 1,
 					Template:   bytes.NewBuffer(l.ectemplate),
@@ -80,5 +79,5 @@ func (l *Presence) error() error {
 	if len(l.errors) == 0 {
 		return nil
 	}
-	return fmt.Errorf("%s errors: %w", l.Name(), l.errors)
+	return fmt.Errorf("%s errors: %w", l.Name(), l.errors[0])
 }

@@ -2,15 +2,14 @@ package gnumake
 
 import (
 	"editorconfig-guesser"
-	"editorconfig-guesser/generic"
-	"editorconfig-guesser/languages"
+	"editorconfig-guesser/fileformat"
 	_ "embed"
 )
 
 var (
 	//go:embed "ectemplate"
 	ectemplate []byte
-	language   editorconfig_guesser.Language = generic.NewPresence(
+	format     ecg.FileFormat = ecg.NewPresence(
 		"Go",
 		[]string{
 			"go.mod",
@@ -22,5 +21,5 @@ var (
 )
 
 func init() {
-	languages.Register(language)
+	fileformat.Register(format)
 }
