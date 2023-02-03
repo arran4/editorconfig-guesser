@@ -1,9 +1,12 @@
 package editorconfig_guesser
 
+import "fmt"
+
 type SummaryResult struct {
 	FileGlobs  []string
-	Rules      map[string]any
 	Confidence float64
+	Template   fmt.Stringer
+	Path       string
 }
 
 type File struct {
@@ -11,6 +14,7 @@ type File struct {
 }
 
 type Language interface {
-	Run() chan *File
-	Done() (*SummaryResult, error)
+	Name() string
+	Start() chan *File
+	Done() ([]*SummaryResult, error)
 }
