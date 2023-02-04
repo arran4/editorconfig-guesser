@@ -12,7 +12,7 @@ var (
 	rootectemplate []byte
 )
 
-func RunInDir(dir fs.FS, ignore func(path string) bool) (string, error) {
+func RunInDir(dir fs.FS, ignore func(file *File) bool) (string, error) {
 	ff := FileFormats()
 	chans := make([]chan *File, 0, len(ff))
 	for _, eff := range ff {
@@ -22,12 +22,12 @@ func RunInDir(dir fs.FS, ignore func(path string) bool) (string, error) {
 		if d == nil || d.IsDir() {
 			return nil
 		}
-		if ignore(path) {
-			return nil
-		}
 		f := &File{
 			Filename:   path,
 			FileOpener: dir,
+		}
+		if ignore(f) {
+			return nil
 		}
 		for _, e := range chans {
 			e <- f

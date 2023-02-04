@@ -12,5 +12,5 @@ trim_trailing_whitespace = true
 {{ if $.EndOfLine -}}
 end_of_line = {{ $.EndOfLine }}
 {{end -}}
-# tab_width
+# tab_width = to taste (probably better in ~/.editorconfig
 

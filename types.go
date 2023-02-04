@@ -3,6 +3,8 @@ package ecg
 import (
 	"errors"
 	"fmt"
+	"github.com/alecthomas/units"
+	"github.com/gabriel-vasile/mimetype"
 	"github.com/saintfish/chardet"
 	"io"
 	"io/fs"
@@ -71,6 +73,29 @@ func (fd *File) Open() (io.ReadSeekCloser, error) {
 	return os.Open(fd.Filename)
 }
 
+func (fd *File) IsBinary() bool {
+	fh, err := fd.Open()
+	if err != nil {
+		return false // So something else can generate the error TODO
+	}
+	defer fh.Close()
+	testBytes := make([]byte, 1*units.KiB)
+	n, err := fh.Read(testBytes)
+	if err != nil {
+		return false
+	}
+	testBytes = testBytes[:n]
+	detectedMIME := mimetype.Detect(testBytes)
+
+	isBinary := true
+	for mtype := detectedMIME; mtype != nil; mtype = mtype.Parent() {
+		if mtype.Is("text/plain") {
+			isBinary = false
+		}
+	}
+	return isBinary
+}
+
 // FileFormat a file format
 type FileFormat interface {
 	// Name The display name for errors etc
@@ -117,6 +142,8 @@ func (l *AllFiles) ReadFile(fd *File) (string, bool, *LineSurvey, error) {
 	b := make([]byte, ReadSize)
 	if n, err := f.Read(b); err != nil {
 		return "", false, nil, fmt.Errorf("read %d (of %d) from %s: %w", n, len(b), fd.Filename, err)
+	} else {
+		b = b[:n]
 	}
 	detector := chardet.NewTextDetector()
 	result, err := detector.DetectBest(b)
@@ -139,7 +166,7 @@ func (l *AllFiles) ReadFile(fd *File) (string, bool, *LineSurvey, error) {
 		if n, err := f.Read(b); err != nil {
 			return "", false, nil, fmt.Errorf("read %d (of %d) from %s: %w", n, len(b), fd.Filename, err)
 		}
-		finalNewLine = b[0] == '\n'
+		finalNewLine = n > 0 && b[0] == '\n'
 	}
 	switch charset {
 	case "UTF-8":

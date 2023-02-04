@@ -13,7 +13,8 @@ import (
 )
 
 var (
-	saveFlag = flag.Bool("save", false, "Save the file as .editorconfig")
+	saveFlag    = flag.Bool("save", false, "Save the file as .editorconfig")
+	verboseFlag = flag.Bool("verbose", false, "Logs more than what is required")
 )
 
 func main() {
@@ -25,13 +26,26 @@ func main() {
 			log.Panicf("Loading git ignores")
 		}
 
-		template, err := ecg.RunInDir(os.DirFS(e), func(path string) bool {
-			for _, e := range filepath.SplitList(path) {
-				if strings.HasPrefix(e, ".") {
+		template, err := ecg.RunInDir(os.DirFS(e), func(file *ecg.File) bool {
+			for _, e := range filepath.SplitList(file.Filename) {
+				if strings.HasPrefix(e, ".") && e != "." {
+					if *verboseFlag {
+						log.Printf("Skipping %s as it has a hidden file in the path", e)
+					}
 					return true
 				}
 			}
-			return ignore.Ignore(path)
+			if ignore.Ignore(file.Filename) {
+				if *verboseFlag {
+					log.Printf("Skipping %s as it is in the .gitignore file", e)
+				}
+			}
+			if file.IsBinary() {
+				if *verboseFlag {
+					log.Printf("Skipping %s as it is considered a binary file", e)
+				}
+			}
+			return false
 		})
 		if err != nil {
 			log.Panicf("Error: %s", err)
