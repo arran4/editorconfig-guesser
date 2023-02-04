@@ -12,6 +12,10 @@ import (
 	"strings"
 )
 
+var (
+	saveFlag = flag.Bool("save", false, "Save the file as .editorconfig")
+)
+
 func main() {
 	log.SetFlags(log.Flags() | log.Lshortfile)
 	flag.Parse()
@@ -39,6 +43,14 @@ func main() {
 		if len(flag.Args()) > 1 {
 			fmt.Println()
 			fmt.Println()
+		}
+		if *saveFlag {
+			outfn := filepath.Join(e, ".editorconfig")
+			if err := os.WriteFile(outfn, []byte(template), 0644); err != nil {
+				log.Panicf("Error saving %s because %s", outfn, err)
+			} else {
+				log.Println("Wrote: ", outfn)
+			}
 		}
 	}
 }
