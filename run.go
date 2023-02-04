@@ -66,7 +66,11 @@ func RunInDir(dir fs.FS, ignore func(path string) bool) (string, error) {
 				_, _ = fmt.Fprintf(template, "}")
 			}
 			_, _ = fmt.Fprintf(template, "]\n")
-			_, _ = fmt.Fprintln(template, ess.Template.String())
+			ts, err := ess.Template.String()
+			if err != nil {
+				return "", err
+			}
+			_, _ = fmt.Fprintln(template, ts)
 		}
 	}
 	return template.String(), nil

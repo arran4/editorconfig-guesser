@@ -2,6 +2,7 @@ package ecg
 
 import (
 	"bytes"
+	"fmt"
 	"path/filepath"
 )
 
@@ -39,7 +40,7 @@ func (l *Presence) RunFile(f *File) ([]*SummaryResult, error) {
 			l.summary = append(l.summary, &SummaryResult{
 				FileGlobs:  []string{gs},
 				Confidence: 1,
-				Template:   bytes.NewBuffer(l.ectemplate),
+				Template:   ErrorStringerWrapper(bytes.NewBuffer(l.ectemplate)),
 				Path:       "/",
 			})
 		} else {
@@ -47,6 +48,18 @@ func (l *Presence) RunFile(f *File) ([]*SummaryResult, error) {
 		}
 	}
 	return nil, nil
+}
+
+type ErrorStringerWrapperStruct struct {
+	stringer fmt.Stringer
+}
+
+func (e *ErrorStringerWrapperStruct) String() (string, error) {
+	return e.stringer.String(), nil
+}
+
+func ErrorStringerWrapper(stringer fmt.Stringer) ErrorStringer {
+	return &ErrorStringerWrapperStruct{stringer: stringer}
 }
 
 func (l *Presence) End() ([]*SummaryResult, error) {

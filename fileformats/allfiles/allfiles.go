@@ -45,11 +45,11 @@ func (l *Format) End() ([]*ecg.SummaryResult, error) {
 	}, nil
 }
 
-func (l *Format) String() string {
+func (l *Format) String() (string, error) {
 	b := bytes.NewBuffer(nil)
 	t := template.Must(template.New("").Parse(string(ectemplate)))
-	_ = t.Execute(b, l)
-	return b.String()
+	err := t.Execute(b, l.allFiles)
+	return b.String(), err
 }
 
 func init() {

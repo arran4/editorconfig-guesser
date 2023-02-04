@@ -14,6 +14,10 @@ import (
 // Contraster Provides contrasts two SummaryResults from the same file format for the purpose of consolidation -- future -- maybe
 type Contraster func(s1, s2 *SummaryResult) int
 
+type ErrorStringer interface {
+	String() (string, error)
+}
+
 // SummaryResult results from a file format
 type SummaryResult struct {
 	// Impacted globs, used for reconstructing.
@@ -23,7 +27,7 @@ type SummaryResult struct {
 	// Future use to compare how different two file paths (same file format) are
 	Contaster Contraster
 	// The template
-	Template fmt.Stringer
+	Template ErrorStringer
 	// The path, this is for future versions where it will suggest sub-directory variants based on confidence and contrast -- maybe
 	Path string
 	// Internal data, probably going to be used by Contraster
