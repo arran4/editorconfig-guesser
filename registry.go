@@ -1,21 +1,20 @@
-package fileformat
+package ecg
 
 import (
-	"editorconfig-guesser"
 	"sort"
 	"strings"
 )
 
 var (
-	fileFormats []ecg.FileFormat
+	fileFormats []FileFormat
 	sorted      = false
 )
 
-func Register(fileFormat ecg.FileFormat) {
+func Register(fileFormat FileFormat) {
 	fileFormats = append(fileFormats, fileFormat)
 }
 
-func FileFormats() []ecg.FileFormat {
+func FileFormats() []FileFormat {
 	if !sorted {
 		sort.Sort(FileFormatsSorter(fileFormats))
 		sorted = true
@@ -23,15 +22,16 @@ func FileFormats() []ecg.FileFormat {
 	return fileFormats
 }
 
-type FileFormatsSorter []ecg.FileFormat
+type FileFormatsSorter []FileFormat
 
 func (l FileFormatsSorter) Len() int {
 	return len(l)
 }
 
 func (l FileFormatsSorter) Less(i, j int) bool {
-	// I actually don't care about the order right now, just needs to be consistent
-	return strings.Compare(l[i].Name(), l[j].Name()) > 0
+	// I actually don't care about the order right now, just needs to be consistent and All Files first.
+	// TODO add priority perhaps dynamic based on confidence?
+	return strings.Compare(l[i].Name(), l[j].Name()) < 0
 }
 
 func (l FileFormatsSorter) Swap(i, j int) {

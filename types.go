@@ -3,6 +3,7 @@ package ecg
 import (
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"sync"
 )
@@ -28,8 +29,9 @@ type SummaryResult struct {
 
 // File reference, could also be a cache
 type File struct {
-	Filename string
-	size     *int64
+	Filename   string
+	FileOpener fs.FS
+	size       *int64
 	sync.Mutex
 }
 
@@ -50,7 +52,15 @@ func (fd *File) Size() int64 {
 }
 
 // Open abstracter eventually might cache, perhaps checking file size first - or only caching the first 256kb
-func (fd File) Open() (io.ReadSeekCloser, error) {
+func (fd *File) Open() (io.ReadSeekCloser, error) {
+	if fd.FileOpener != nil {
+		f, err := fd.FileOpener.Open(fd.Filename)
+		rsc, ok := f.(io.ReadSeekCloser)
+		if !ok {
+			return nil, fmt.Errorf("file isn't readable, seakable or closable")
+		}
+		return rsc, err
+	}
 	return os.Open(fd.Filename)
 }
 

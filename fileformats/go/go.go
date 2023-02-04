@@ -2,7 +2,6 @@ package gnumake
 
 import (
 	"editorconfig-guesser"
-	"editorconfig-guesser/fileformat"
 	_ "embed"
 )
 
@@ -21,5 +20,5 @@ var (
 )
 
 func init() {
-	fileformat.Register(format)
+	ecg.Register(format)
 }

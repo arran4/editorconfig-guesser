@@ -31,6 +31,7 @@ func (l *Presence) Name() string {
 
 func (l *Presence) Start() chan *File {
 	l.reader = make(chan *File)
+	l.WaitGroup.Add(1)
 	go l.Run()
 	return l.reader
 }
@@ -41,15 +42,14 @@ func (l *Presence) Done() ([]*SummaryResult, error) {
 }
 
 func (l *Presence) Run() {
-	l.WaitGroup.Add(1)
 	defer l.WaitGroup.Done()
+	matched := map[int]struct{}{}
 	for f := range l.reader {
 		if f == nil {
 			close(l.reader)
 			l.reader = nil
 			break
 		}
-		matched := map[int]struct{}{}
 		for gsi, gs := range l.globs {
 			if m, err := filepath.Match(gs, f.Filename); err != nil {
 				l.errors = append(l.errors, fmt.Errorf("matcher %s: %w", gs, err))
@@ -71,7 +71,6 @@ func (l *Presence) Run() {
 				l.summary[0].FileGlobs = append(l.summary[0].FileGlobs, gs)
 			}
 		}
-		break
 	}
 }
 

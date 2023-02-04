@@ -19,6 +19,7 @@ import (
 var (
 	//go:embed "ectemplate"
 	ectemplate []byte
+	format     = &Format{}
 )
 
 type Format struct {
@@ -46,6 +47,7 @@ func (l *Format) Name() string {
 
 func (l *Format) Start() chan *ecg.File {
 	l.reader = make(chan *ecg.File)
+	l.WaitGroup.Add(1)
 	go l.Run()
 	return l.reader
 }
@@ -99,7 +101,6 @@ func (s *CharSetSummary) Distribution(total int) string {
 }
 
 func (l *Format) Run() {
-	l.WaitGroup.Add(1)
 	defer l.WaitGroup.Done()
 	var Files int
 	characterSets := &CharSetSummary{
@@ -158,23 +159,22 @@ func (l *Format) Run() {
 		} else {
 			trailingSpaceOkay.False += 1
 		}
-		break
 	}
-	if (finalNewLineBalance.True*100)/Files > 80 { // 20% threshold
+	if Files > 0 && (finalNewLineBalance.True*100)/Files > 80 { // 20% threshold
 		l.InsertFinalNewline = "true"
-	} else if (finalNewLineBalance.False*100)/Files > 80 { // 20% threshold
+	} else if Files > 0 && (finalNewLineBalance.False*100)/Files > 80 { // 20% threshold
 		l.InsertFinalNewline = "false"
 	}
 	l.Charset = characterSets.BestFit()
 	l.Charsets = characterSets.Distribution(Files)
-	if (trailingSpaceOkay.True*100)/Files > 80 { // 20% threshold
+	if Files > 0 && (trailingSpaceOkay.True*100)/Files > 80 { // 20% threshold
 		l.TrimTrailingWhitespace = "true"
-	} else if (trailingSpaceOkay.False*100)/Files > 80 { // 20% threshold
+	} else if Files > 0 && (trailingSpaceOkay.False*100)/Files > 80 { // 20% threshold
 		l.TrimTrailingWhitespace = "false"
 	}
-	if (lineEndings.Unix*100)/Files > 80 { // 20% threshold
+	if Files > 0 && (lineEndings.Unix*100)/Files > 80 { // 20% threshold
 		l.EndOfLine = "lf"
-	} else if (lineEndings.Windows*100)/Files > 80 { // 80% threshold
+	} else if Files > 0 && (lineEndings.Windows*100)/Files > 80 { // 80% threshold
 		l.EndOfLine = "crlf"
 	}
 }
@@ -221,8 +221,12 @@ func (l *Format) runOnFile(fd *ecg.File) (string, bool, *ecg.LineSurvey, error) 
 		if n, err := f.Read(b); err != nil {
 			return "", false, nil, fmt.Errorf("read %d (of %d) from %s: %w", n, len(b), fd.Filename, err)
 		}
-		finalNewLine = b[1] == '\n'
+		finalNewLine = b[0] == '\n'
 	}
 
 	return charset, finalNewLine, sample, nil
+}
+
+func init() {
+	ecg.Register(format)
 }
