@@ -5,21 +5,27 @@ import (
 	"strings"
 )
 
+type FileFormatFactory func() FileFormat
+
 var (
-	fileFormats []FileFormat
+	fileFormats []FileFormatFactory
 	sorted      = false
 )
 
-func Register(fileFormat FileFormat) {
+func Register(fileFormat FileFormatFactory) {
 	fileFormats = append(fileFormats, fileFormat)
 }
 
 func FileFormats() []FileFormat {
+	ffs := make([]FileFormat, len(fileFormats), len(fileFormats))
+	for i, fff := range fileFormats {
+		ffs[i] = fff()
+	}
 	if !sorted {
-		sort.Sort(FileFormatsSorter(fileFormats))
+		sort.Sort(FileFormatsSorter(ffs))
 		sorted = true
 	}
-	return fileFormats
+	return ffs
 }
 
 type FileFormatsSorter []FileFormat

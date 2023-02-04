@@ -15,7 +15,6 @@ import (
 var (
 	//go:embed "ectemplate"
 	ectemplate []byte
-	format     = ecg.NewContainer("ALl Files", &Format{})
 )
 
 type Format struct {
@@ -162,5 +161,7 @@ func (l *Format) readFile(fd *ecg.File) (string, bool, *ecg.LineSurvey, error) {
 }
 
 func init() {
-	ecg.Register(format)
+	ecg.Register(func() ecg.FileFormat {
+		return ecg.NewContainer("ALl Files", &Format{})
+	})
 }
