@@ -7,31 +7,110 @@ import (
 	"errors"
 	"fmt"
 	"github.com/saintfish/chardet"
-	"golang.org/x/exp/maps"
-	"golang.org/x/exp/slices"
 	"io"
 	"log"
-	"strings"
-	"sync"
 	"text/template"
 )
 
 var (
 	//go:embed "ectemplate"
 	ectemplate []byte
-	format     = &Format{}
+	format     = ecg.NewContainer("ALl Files", &Format{})
 )
 
 type Format struct {
-	sync.WaitGroup
-	reader                 chan *ecg.File
-	errors                 []error
-	ectemplate             []byte
 	InsertFinalNewline     string
 	Charset                string
 	Charsets               string
 	TrimTrailingWhitespace string
 	EndOfLine              string
+	Files                  int
+	characterSets          *ecg.CharSetSummary
+	finalNewLineBalance    struct {
+		True  int
+		False int
+	}
+	trailingSpaceOkay struct {
+		True  int
+		False int
+	}
+	lineEndings struct {
+		Windows int
+		Unix    int
+	}
+}
+
+func (l *Format) Init() ([]*ecg.SummaryResult, error) {
+	l.characterSets = &ecg.CharSetSummary{
+		Sets: map[string]int{},
+	}
+	return nil, nil
+}
+
+func (l *Format) RunFile(f *ecg.File) ([]*ecg.SummaryResult, error) {
+	l.Files += 1
+	charset, finalNewLine, survey, err := l.readFile(f)
+	if err != nil {
+		return nil, fmt.Errorf("running: %w", err)
+	}
+	switch charset {
+	case "UTF-8":
+		l.characterSets.Utf8 += 1
+	case "UTF-16BE":
+		l.characterSets.Utf16Be += 1
+	case "UTF-16LE":
+		l.characterSets.Utf16Le += 1
+	case "ISO-8859-1":
+		l.characterSets.Latin1 += 1
+	case "":
+	default:
+		l.characterSets.OtherTotal += 1
+	}
+	l.characterSets.Sets[charset] += 1
+	if finalNewLine {
+		l.finalNewLineBalance.True += 1
+	} else {
+		l.finalNewLineBalance.False += 1
+	}
+	if survey.WindowNewlines < survey.NewLines/5 { // 20% threshold
+		l.lineEndings.Unix += 1
+	} else if survey.WindowNewlines > survey.NewLines/5*4 { // 80% threshold
+		l.lineEndings.Windows += 1
+	}
+	if !survey.TrailingWhitespaceCommon() {
+		l.trailingSpaceOkay.True += 1
+	} else {
+		l.trailingSpaceOkay.False += 1
+	}
+	return nil, nil
+}
+
+func (l *Format) End() ([]*ecg.SummaryResult, error) {
+	if l.Files > 0 && (l.finalNewLineBalance.True*100)/l.Files > 80 { // 20% threshold
+		l.InsertFinalNewline = "true"
+	} else if l.Files > 0 && (l.finalNewLineBalance.False*100)/l.Files > 80 { // 20% threshold
+		l.InsertFinalNewline = "false"
+	}
+	l.Charset = l.characterSets.BestFit()
+	l.Charsets = l.characterSets.Distribution(l.Files)
+	if l.Files > 0 && (l.trailingSpaceOkay.True*100)/l.Files > 80 { // 20% threshold
+		l.TrimTrailingWhitespace = "true"
+	} else if l.Files > 0 && (l.trailingSpaceOkay.False*100)/l.Files > 80 { // 20% threshold
+		l.TrimTrailingWhitespace = "false"
+	}
+	if l.Files > 0 && (l.lineEndings.Unix*100)/l.Files > 80 { // 20% threshold
+		l.EndOfLine = "lf"
+	} else if l.Files > 0 && (l.lineEndings.Windows*100)/l.Files > 80 { // 80% threshold
+		l.EndOfLine = "crlf"
+	}
+	return []*ecg.SummaryResult{
+		{
+			FileGlobs:  []string{"*"},
+			Confidence: 3,
+			Template:   l,
+			Path:       "/",
+		},
+	}, nil
 }
 
 func (l *Format) String() string {
@@ -41,152 +120,7 @@ func (l *Format) String() string {
 	return b.String()
 }
 
-func (l *Format) Name() string {
-	return "ALl Files"
-}
-
-func (l *Format) Start() chan *ecg.File {
-	l.reader = make(chan *ecg.File)
-	l.WaitGroup.Add(1)
-	go l.Run()
-	return l.reader
-}
-
-func (l *Format) Done() ([]*ecg.SummaryResult, error) {
-	l.WaitGroup.Wait()
-	return []*ecg.SummaryResult{
-		{
-			FileGlobs:  []string{"*"},
-			Confidence: 3,
-			Template:   l,
-			Path:       "/",
-		},
-	}, l.error()
-}
-
-type CharSetSummary struct {
-	Latin1     int `value:"latin1"`
-	Utf8       int `value:"utf-8"`
-	Utf16Be    int `value:"utf-16be"`
-	Utf16Le    int `value:"utf-16le"`
-	Utf8Bom    int `value:"utf-8-bom"`
-	Sets       map[string]int
-	OtherTotal int
-}
-
-func (s *CharSetSummary) BestFit() string {
-	ks := maps.Keys(s.Sets)
-	slices.SortFunc(ks, func(a, b string) bool {
-		return s.Sets[a] > s.Sets[b]
-	})
-	if len(ks) > 0 {
-		return ks[0]
-	}
-	return ""
-}
-
-func (s *CharSetSummary) Distribution(total int) string {
-	ks := maps.Keys(s.Sets)
-	slices.SortFunc(ks, func(a, b string) bool {
-		return s.Sets[a] > s.Sets[b]
-	})
-	r := &strings.Builder{}
-	for i, e := range ks {
-		if i > 0 {
-			r.WriteString(", ")
-		}
-		_, _ = fmt.Fprintf(r, "%s (%0.1f%%)", e, float64(s.Sets[e])/float64(total)*100)
-	}
-	return r.String()
-}
-
-func (l *Format) Run() {
-	defer l.WaitGroup.Done()
-	var Files int
-	characterSets := &CharSetSummary{
-		Sets: map[string]int{},
-	}
-	finalNewLineBalance := struct {
-		True  int
-		False int
-	}{}
-	trailingSpaceOkay := struct {
-		True  int
-		False int
-	}{}
-	lineEndings := struct {
-		Windows int
-		Unix    int
-	}{}
-	for f := range l.reader {
-		if f == nil {
-			close(l.reader)
-			l.reader = nil
-			break
-		}
-		Files += 1
-		charset, finalNewLine, survey, err := l.runOnFile(f)
-		if err != nil {
-			l.errors = append(l.errors, fmt.Errorf("running: %w", err))
-			continue
-		}
-		switch charset {
-		case "UTF-8":
-			characterSets.Utf8 += 1
-		case "UTF-16BE":
-			characterSets.Utf16Be += 1
-		case "UTF-16LE":
-			characterSets.Utf16Le += 1
-		case "ISO-8859-1":
-			characterSets.Latin1 += 1
-		case "":
-		default:
-			characterSets.OtherTotal += 1
-		}
-		characterSets.Sets[charset] += 1
-		if finalNewLine {
-			finalNewLineBalance.True += 1
-		} else {
-			finalNewLineBalance.False += 1
-		}
-		if survey.WindowNewlines < survey.NewLines/5 { // 20% threshold
-			lineEndings.Unix += 1
-		} else if survey.WindowNewlines > survey.NewLines/5*4 { // 80% threshold
-			lineEndings.Windows += 1
-		}
-		if !survey.TrailingWhitespaceCommon() {
-			trailingSpaceOkay.True += 1
-		} else {
-			trailingSpaceOkay.False += 1
-		}
-	}
-	if Files > 0 && (finalNewLineBalance.True*100)/Files > 80 { // 20% threshold
-		l.InsertFinalNewline = "true"
-	} else if Files > 0 && (finalNewLineBalance.False*100)/Files > 80 { // 20% threshold
-		l.InsertFinalNewline = "false"
-	}
-	l.Charset = characterSets.BestFit()
-	l.Charsets = characterSets.Distribution(Files)
-	if Files > 0 && (trailingSpaceOkay.True*100)/Files > 80 { // 20% threshold
-		l.TrimTrailingWhitespace = "true"
-	} else if Files > 0 && (trailingSpaceOkay.False*100)/Files > 80 { // 20% threshold
-		l.TrimTrailingWhitespace = "false"
-	}
-	if Files > 0 && (lineEndings.Unix*100)/Files > 80 { // 20% threshold
-		l.EndOfLine = "lf"
-	} else if Files > 0 && (lineEndings.Windows*100)/Files > 80 { // 80% threshold
-		l.EndOfLine = "crlf"
-	}
-}
-
-func (l *Format) error() error {
-	if len(l.errors) == 0 {
-		return nil
-	}
-	return fmt.Errorf("%s errors: %w", l.Name(), l.errors)
-}
-
-func (l *Format) runOnFile(fd *ecg.File) (string, bool, *ecg.LineSurvey, error) {
+func (l *Format) readFile(fd *ecg.File) (string, bool, *ecg.LineSurvey, error) {
 	f, err := fd.Open()
 	if err != nil {
 		return "", false, nil, fmt.Errorf("opening %s: %w", fd.Filename, err)

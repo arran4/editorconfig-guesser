@@ -4,7 +4,6 @@ import (
 	_ "embed"
 	"fmt"
 	"io/fs"
-	"log"
 	"strings"
 )
 
@@ -30,7 +29,6 @@ func RunInDir(dir fs.FS, ignore func(path string) bool) (string, error) {
 			Filename:   path,
 			FileOpener: dir,
 		}
-		log.Printf("%v", f)
 		for _, e := range chans {
 			e <- f
 		}
