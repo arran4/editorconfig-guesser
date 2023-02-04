@@ -9,6 +9,11 @@ type LineSurvey struct {
 	WindowNewlines   int
 }
 
+func (s *LineSurvey) TrailingWhitespaceCommon() bool {
+	// TODO this is too simplistic -- I don't know what circumstance this would be for.... Request PR / case study
+	return len(s.WhitespaceSuffix) > 5
+}
+
 func LineSurveySample(b []byte) *LineSurvey {
 	ls := &LineSurvey{
 		NewLines:         0,

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"sync"
 )
 
 // Contraster Provides contrasts two SummaryResults from the same file format for the purpose of consolidation -- future -- maybe
@@ -28,11 +29,29 @@ type SummaryResult struct {
 // File reference, could also be a cache
 type File struct {
 	Filename string
+	size     *int64
+	sync.Mutex
+}
+
+// Size of file + cache
+func (fd *File) Size() int64 {
+	fd.Lock()
+	defer fd.Unlock()
+	if fd.size != nil {
+		return *fd.size
+	}
+	st, err := os.Stat(fd.Filename)
+	if err != nil {
+		return -1
+	}
+	s := st.Size()
+	fd.size = &s
+	return *fd.size
 }
 
 // Open abstracter eventually might cache, perhaps checking file size first - or only caching the first 256kb
-func (f File) Open() (io.ReadCloser, error) {
-	return os.Open(f.Filename)
+func (fd File) Open() (io.ReadSeekCloser, error) {
+	return os.Open(fd.Filename)
 }
 
 // FileFormat a file format
