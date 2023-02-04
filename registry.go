@@ -18,8 +18,19 @@ func Register(fileFormat FileFormatFactory) {
 
 func FileFormats() []FileFormat {
 	ffs := make([]FileFormat, len(fileFormats), len(fileFormats))
+	var af *AllFiles
 	for i, fff := range fileFormats {
 		ffs[i] = fff()
+		if afg, ok := ffs[i].(AllFilesGetter); ok {
+			af = afg.AllFiles()
+		}
+	}
+	if af != nil {
+		for _, ff := range ffs {
+			if afs, ok := ff.(AllFilesSetter); ok {
+				afs.AllFiles(af)
+			}
+		}
 	}
 	if !sorted {
 		sort.Sort(FileFormatsSorter(ffs))

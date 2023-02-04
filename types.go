@@ -192,3 +192,7 @@ func (l *AllFiles) Summarize() {
 type AllFilesGetter interface {
 	AllFiles() *AllFiles
 }
+
+type AllFilesSetter interface {
+	AllFiles(af *AllFiles)
+}
