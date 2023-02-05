@@ -28,7 +28,7 @@ func FileFormats() []FileFormat {
 	if af != nil {
 		for _, ff := range ffs {
 			if afs, ok := ff.(AllFilesSetter); ok {
-				afs.AllFiles(af)
+				afs.SetAllFiles(af)
 			}
 		}
 	}

@@ -225,5 +225,5 @@ type AllFilesGetter interface {
 }
 
 type AllFilesSetter interface {
-	AllFiles(af *AllFiles)
+	SetAllFiles(af *AllFiles)
 }
