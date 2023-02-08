@@ -14,10 +14,10 @@ var (
 )
 
 type Format struct {
-	allFiles *ecg.AllFiles
+	allFiles *ecg.BasicSurveyor
 }
 
-func (l *Format) AllFiles() *ecg.AllFiles {
+func (l *Format) BasicSurveyor() *ecg.BasicSurveyor {
 	return l.allFiles
 }
 
@@ -55,13 +55,9 @@ func (l *Format) String() (string, error) {
 func init() {
 	ecg.Register(func() ecg.FileFormat {
 		return ecg.NewContainer("ALl Files", &Format{
-			allFiles: &ecg.AllFiles{
-				CharacterSets: &ecg.CharSetSummary{
-					Sets: map[string]int{},
-				},
-			},
+			allFiles: ecg.NewBasicSurveyor(),
 		})
 	})
 }
 
-var _ ecg.AllFilesGetter = (*Format)(nil)
+var _ ecg.BasicSurveyorGetter = (*Format)(nil)

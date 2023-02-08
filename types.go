@@ -6,10 +6,14 @@ import (
 	"github.com/alecthomas/units"
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/saintfish/chardet"
+	"golang.org/x/exp/maps"
+	"golang.org/x/exp/slices"
 	"io"
 	"io/fs"
 	"log"
 	"os"
+	"sort"
+	"strings"
 	"sync"
 )
 
@@ -106,7 +110,7 @@ type FileFormat interface {
 	Done() ([]*SummaryResult, error)
 }
 
-type AllFiles struct {
+type BasicSurveyor struct {
 	InsertFinalNewline     string
 	Charset                string
 	Charsets               string
@@ -126,9 +130,25 @@ type AllFiles struct {
 		Windows int
 		Unix    int
 	}
+	lineLengths        map[LineLengthDetail]int
+	IndentStyle        string
+	IndentSize         string
+	MaxLineLength      string
+	TabWidth           string
+	whitespacePrefixes map[string]int
 }
 
-func (l *AllFiles) ReadFile(fd *File) (string, bool, *LineSurvey, error) {
+func NewBasicSurveyor() *BasicSurveyor {
+	return &BasicSurveyor{
+		CharacterSets: &CharSetSummary{
+			Sets: map[string]int{},
+		},
+		whitespacePrefixes: map[string]int{},
+		lineLengths:        map[LineLengthDetail]int{},
+	}
+}
+
+func (l *BasicSurveyor) ReadFile(fd *File) (string, bool, *LineSurvey, error) {
 	l.Files += 1
 	f, err := fd.Open()
 	if err != nil {
@@ -197,10 +217,16 @@ func (l *AllFiles) ReadFile(fd *File) (string, bool, *LineSurvey, error) {
 	} else {
 		l.trailingSpaceOkay.False += 1
 	}
+	for k, v := range survey.LineLengths {
+		l.lineLengths[k] += v
+	}
+	for k, v := range survey.WhitespacePrefix {
+		l.whitespacePrefixes[k] += v
+	}
 	return charset, finalNewLine, survey, nil
 }
 
-func (l *AllFiles) Summarize() {
+func (l *BasicSurveyor) Summarize() {
 	if l.FinalNewLineBalanceTruePercent() > .80 {
 		l.InsertFinalNewline = "true"
 	} else if l.FinalNewLineBalanceFalsePercent() > .80 {
@@ -218,47 +244,147 @@ func (l *AllFiles) Summarize() {
 	} else if l.WindowsLineEndingPercent() >= .80 {
 		l.EndOfLine = "crlf"
 	}
+	// TODO think about mixed cases
+	if v := l.TabPercent(); v >= .8 {
+		l.IndentStyle = "tabs"
+		l.TabWidth, l.MaxLineLength = l.TabWidthLineLengthCalc()
+	} else if v <= .2 {
+		l.IndentStyle = "spaces"
+		l.MaxLineLength = l.SpaceMaxLineLengthCalc()
+	}
+	l.IndentSize = l.IndentSizeCalc()
 }
 
-func (l *AllFiles) WindowsLineEndingPercent() float64 {
+func (l *BasicSurveyor) WindowsLineEndingPercent() float64 {
 	if l.Files > 0 {
 		return float64(l.lineEndings.Windows) / float64(l.Files)
 	}
 	return 0
 }
 
-func (l *AllFiles) UnixLineEndingPercent() float64 {
+func (l *BasicSurveyor) UnixLineEndingPercent() float64 {
 	if l.Files > 0 {
 		return float64(l.lineEndings.Unix) / float64(l.Files)
 	}
 	return 0
 }
 
-func (l *AllFiles) FinalNewLineBalanceTruePercent() float64 {
+func (l *BasicSurveyor) FinalNewLineBalanceTruePercent() float64 {
 	if l.Files > 0 {
 		return float64(l.finalNewLineBalance.True) / float64(l.Files)
 	}
 	return 0
 }
 
-func (l *AllFiles) FinalNewLineBalanceFalsePercent() float64 {
+func (l *BasicSurveyor) FinalNewLineBalanceFalsePercent() float64 {
 	if l.Files > 0 {
 		return float64(l.finalNewLineBalance.False) / float64(l.Files)
 	}
 	return 0
 }
 
-func (l *AllFiles) TrailingSpaceOkayPercent() float64 {
+func (l *BasicSurveyor) TrailingSpaceOkayPercent() float64 {
 	if l.Files > 0 {
 		return float64(l.trailingSpaceOkay.True) / float64(l.Files)
 	}
 	return 0
 }
 
-type AllFilesGetter interface {
-	AllFiles() *AllFiles
+func (l *BasicSurveyor) TabPercent() float64 {
+	count := 0
+	total := 0
+	for k, v := range l.lineLengths {
+		if k.tabIndentation > 0 {
+			count += v
+		}
+		total += v
+	}
+	if total == 0 {
+		return 0
+	}
+	return float64(count) / float64(total)
 }
 
-type AllFilesSetter interface {
-	SetAllFiles(af *AllFiles)
+func (l *BasicSurveyor) TabWidthLineLengthCalc() (string, string) {
+	type TabWidthDetail struct {
+		DepthCount map[int]int
+	}
+	tabWidths := map[int]*TabWidthDetail{}
+	var depthKeys []int
+	for i := 1; i <= 8; i++ {
+		depthKeys = append(depthKeys, i)
+		tabWidths[i] = &TabWidthDetail{
+			DepthCount: map[int]int{},
+		}
+	}
+	const step = 20
+	const firstGoal = 80
+	const minimum = firstGoal - step
+	const minimumDepth = minimum / step
+	for k, v := range l.lineLengths {
+		for _, dk := range depthKeys {
+			l := k.length + (k.tabIndentation * (dk - 1))
+			tabWidths[dk].DepthCount[l/step] += v
+		}
+	}
+	slices.SortFunc(depthKeys, func(a, b int) bool {
+		al := len(tabWidths[a].DepthCount)
+		bl := len(tabWidths[b].DepthCount)
+		if al == bl {
+			return b < a
+		}
+		return al < bl
+	})
+	lengths := maps.Keys(tabWidths[depthKeys[0]].DepthCount)
+	sort.Sort(sort.Reverse(sort.IntSlice(lengths)))
+	max := ""
+	if len(lengths) > 0 && minimumDepth <= lengths[0] {
+		max = fmt.Sprintf("%d", (lengths[0]+1)*step)
+	}
+	return fmt.Sprintf("%d", depthKeys[0]), max
+}
+
+func (l *BasicSurveyor) SpaceMaxLineLengthCalc() string {
+	// TODO skip tab stuff
+	d, _ := l.TabWidthLineLengthCalc()
+	return d
+}
+
+func (l *BasicSurveyor) IndentSizeCalc() string {
+	all := maps.Keys(l.whitespacePrefixes)
+	sort.Strings(all)
+	longest := 0
+	for _, e := range all {
+		if len(e) > longest {
+			longest = len(e)
+		}
+	}
+	var longestRun struct {
+		RunLength int
+		RunStr    string
+	}
+	for _, e := range all {
+		runLength := 0
+		for i := len(e); i <= longest/len(e); i++ {
+			k := strings.Repeat(e, i)
+			if _, ok := l.whitespacePrefixes[k]; ok {
+				runLength++
+			} else {
+				if runLength > longestRun.RunLength {
+					longestRun.RunStr = e
+					longestRun.RunLength = runLength
+				}
+				runLength = 0
+			}
+		}
+	}
+	return longestRun.RunStr
+}
+
+type BasicSurveyorGetter interface {
+	BasicSurveyor() *BasicSurveyor
+}
+
+type BasicSurveyorSetter interface {
+	SetBasicSurveyor(af *BasicSurveyor)
 }

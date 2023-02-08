@@ -18,17 +18,17 @@ func Register(fileFormat FileFormatFactory) {
 
 func FileFormats() []FileFormat {
 	ffs := make([]FileFormat, len(fileFormats), len(fileFormats))
-	var af *AllFiles
+	var af *BasicSurveyor
 	for i, fff := range fileFormats {
 		ffs[i] = fff()
-		if afg, ok := ffs[i].(AllFilesGetter); ok {
-			af = afg.AllFiles()
+		if afg, ok := ffs[i].(BasicSurveyorGetter); ok {
+			af = afg.BasicSurveyor()
 		}
 	}
 	if af != nil {
 		for _, ff := range ffs {
-			if afs, ok := ff.(AllFilesSetter); ok {
-				afs.SetAllFiles(af)
+			if afs, ok := ff.(BasicSurveyorSetter); ok {
+				afs.SetBasicSurveyor(af)
 			}
 		}
 	}

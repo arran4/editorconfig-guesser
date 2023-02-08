@@ -16,17 +16,17 @@ var (
 )
 
 type Format struct {
-	allFiles      *ecg.AllFiles
-	actualAllFile *ecg.AllFiles
-	matches       int
+	surveyor          *ecg.BasicSurveyor
+	everyFileSurveyor *ecg.BasicSurveyor
+	matches           int
 }
 
-func (l *Format) SetAllFiles(af *ecg.AllFiles) {
-	l.actualAllFile = af
+func (l *Format) SetBasicSurveyor(af *ecg.BasicSurveyor) {
+	l.everyFileSurveyor = af
 }
 
-func (l *Format) AllFiles() *ecg.AllFiles {
-	return l.allFiles
+func (l *Format) BasicSurveyor() *ecg.BasicSurveyor {
+	return l.surveyor
 }
 
 func (l *Format) Init() ([]*ecg.SummaryResult, error) {
@@ -34,15 +34,20 @@ func (l *Format) Init() ([]*ecg.SummaryResult, error) {
 }
 
 func (l *Format) RunFile(f *ecg.File) ([]*ecg.SummaryResult, error) {
+	match := false
 	for _, gs := range globs {
 		if m, err := filepath.Match(gs, f.Filename); err != nil {
 			return nil, err
-		} else if !m {
-			return nil, nil
+		} else if m {
+			match = true
+			break
 		}
 	}
+	if !match {
+		return nil, nil
+	}
 	l.matches++
-	_, _, _, err := l.allFiles.ReadFile(f)
+	_, _, _, err := l.surveyor.ReadFile(f)
 	if err != nil {
 		return nil, fmt.Errorf("running: %w", err)
 	}
@@ -53,7 +58,7 @@ func (l *Format) End() ([]*ecg.SummaryResult, error) {
 	if l.matches == 0 {
 		return nil, nil
 	}
-	l.allFiles.Summarize()
+	l.surveyor.Summarize()
 	return []*ecg.SummaryResult{
 		{
 			FileGlobs:  globs,
@@ -67,31 +72,44 @@ func (l *Format) End() ([]*ecg.SummaryResult, error) {
 func (l *Format) String() (string, error) {
 	b := bytes.NewBuffer(nil)
 	t := template.Must(template.New("").Parse(string(ectemplate)))
-	var allFiles *ecg.AllFiles
-	if l.actualAllFile == nil {
-		allFiles = l.allFiles
+	var allFiles *ecg.BasicSurveyor
+	if l.everyFileSurveyor == nil {
+		allFiles = l.surveyor
 	} else {
-		allFiles = &ecg.AllFiles{}
-		if l.actualAllFile.InsertFinalNewline != l.allFiles.InsertFinalNewline {
-			allFiles.InsertFinalNewline = l.allFiles.InsertFinalNewline
+		allFiles = ecg.NewBasicSurveyor()
+		if l.everyFileSurveyor.InsertFinalNewline != l.surveyor.InsertFinalNewline {
+			allFiles.InsertFinalNewline = l.surveyor.InsertFinalNewline
 		}
-		if l.actualAllFile.Charset != l.allFiles.Charset {
-			allFiles.Charset = l.allFiles.Charset
+		if l.everyFileSurveyor.Charset != l.surveyor.Charset {
+			allFiles.Charset = l.surveyor.Charset
 		}
-		if l.actualAllFile.Charsets != l.allFiles.Charsets {
-			allFiles.Charsets = l.allFiles.Charsets
+		if l.everyFileSurveyor.Charsets != l.surveyor.Charsets {
+			allFiles.Charsets = l.surveyor.Charsets
 		}
-		if l.actualAllFile.TrimTrailingWhitespace != l.allFiles.TrimTrailingWhitespace {
-			allFiles.TrimTrailingWhitespace = l.allFiles.TrimTrailingWhitespace
+		if l.everyFileSurveyor.TrimTrailingWhitespace != l.surveyor.TrimTrailingWhitespace {
+			allFiles.TrimTrailingWhitespace = l.surveyor.TrimTrailingWhitespace
 		}
-		if l.actualAllFile.EndOfLine != l.allFiles.EndOfLine {
-			allFiles.EndOfLine = l.allFiles.EndOfLine
+		if l.everyFileSurveyor.EndOfLine != l.surveyor.EndOfLine {
+			allFiles.EndOfLine = l.surveyor.EndOfLine
 		}
-		if l.actualAllFile.Files != l.allFiles.Files {
-			allFiles.Files = l.allFiles.Files
+		if l.everyFileSurveyor.Files != l.surveyor.Files {
+			allFiles.Files = l.surveyor.Files
 		}
-		if l.actualAllFile.CharacterSets != l.allFiles.CharacterSets {
-			allFiles.CharacterSets = l.allFiles.CharacterSets
+		if l.everyFileSurveyor.CharacterSets != l.surveyor.CharacterSets {
+			allFiles.CharacterSets = l.surveyor.CharacterSets
+		}
+
+		if l.everyFileSurveyor.IndentStyle != l.surveyor.IndentStyle {
+			allFiles.IndentStyle = l.surveyor.IndentStyle
+		}
+		if l.everyFileSurveyor.IndentSize != l.surveyor.IndentSize {
+			allFiles.IndentSize = l.surveyor.IndentSize
+		}
+		if l.everyFileSurveyor.MaxLineLength != l.surveyor.MaxLineLength {
+			allFiles.MaxLineLength = l.surveyor.MaxLineLength
+		}
+		if l.everyFileSurveyor.TabWidth != l.surveyor.TabWidth {
+			allFiles.TabWidth = l.surveyor.TabWidth
 		}
 	}
 	err := t.Execute(b, allFiles)
@@ -101,14 +119,10 @@ func (l *Format) String() (string, error) {
 func init() {
 	ecg.Register(func() ecg.FileFormat {
 		return ecg.NewContainer("Typescript", &Format{
-			allFiles: &ecg.AllFiles{
-				CharacterSets: &ecg.CharSetSummary{
-					Sets: map[string]int{},
-				},
-			},
+			surveyor: ecg.NewBasicSurveyor(),
 		})
 	})
 }
 
-var _ ecg.AllFilesGetter = (*Format)(nil)
-var _ ecg.AllFilesSetter = (*Format)(nil)
+var _ ecg.BasicSurveyorGetter = (*Format)(nil)
+var _ ecg.BasicSurveyorSetter = (*Format)(nil)
