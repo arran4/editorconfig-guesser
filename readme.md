@@ -12,6 +12,11 @@ The program is aware of:
 Currently, all the supported file formats only support the most generic `editorconfig` arguments; as per https://editorconfig.org/. 
 Happy to accept PRs that expand the scope of particular formats to; 
 
+# Install
+
+See releases for executables, deb, rpm, etc;
+https://github.com/arran4/editorconfig-guesser/releases
+
 # Usage:
 
 `ecguess` `[-save]` `[-verbose]` `[directories]`
