@@ -1,4 +1,4 @@
-package allfiles
+package fileformattempalte
 
 import (
 	"bytes"
@@ -8,6 +8,11 @@ import (
 	"path/filepath"
 	"text/template"
 )
+
+// This template is for people who are adding MORE types of inputs.
+// Please just vary one of the other formats if you're simply after
+// enabling a file type without its own specific requirements please
+// look at the 'generic' file format.
 
 var (
 	//go:embed "ectemplate"
@@ -23,10 +28,6 @@ type Format struct {
 
 func (l *Format) SetBasicSurveyor(af *ecg.BasicSurveyor) {
 	l.everyFileSurveyor = af
-}
-
-func (l *Format) BasicSurveyor() *ecg.BasicSurveyor {
-	return l.surveyor
 }
 
 func (l *Format) Init() ([]*ecg.SummaryResult, error) {
@@ -125,5 +126,4 @@ func init() {
 	})
 }
 
-var _ ecg.BasicSurveyorGetter = (*Format)(nil)
 var _ ecg.BasicSurveyorSetter = (*Format)(nil)

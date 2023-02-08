@@ -1,4 +1,4 @@
-package allfiles
+package generic
 
 import (
 	"bytes"
@@ -6,17 +6,31 @@ import (
 	_ "embed"
 	"fmt"
 	"path/filepath"
+	"strings"
 	"text/template"
 )
 
 var (
 	//go:embed "ectemplate"
 	ectemplate []byte
-	globs      = []string{"*.ts"}
+	globs      = [][]string{
+		[]string{
+			"*.ts",
+			"*.js",
+		},
+		[]string{
+			"*.cpp",
+			"*.h",
+			"*.c",
+		},
+		[]string{
+			"*.py",
+		},
+	}
 )
 
 type Format struct {
-	surveyor          *ecg.BasicSurveyor
+	surveyor          map[string]*ecg.BasicSurveyor
 	everyFileSurveyor *ecg.BasicSurveyor
 	matches           int
 }
@@ -25,30 +39,37 @@ func (l *Format) SetBasicSurveyor(af *ecg.BasicSurveyor) {
 	l.everyFileSurveyor = af
 }
 
-func (l *Format) BasicSurveyor() *ecg.BasicSurveyor {
-	return l.surveyor
-}
-
 func (l *Format) Init() ([]*ecg.SummaryResult, error) {
 	return nil, nil
 }
 
 func (l *Format) RunFile(f *ecg.File) ([]*ecg.SummaryResult, error) {
-	match := false
+	var match []string
 	for _, gs := range globs {
 		_, fn := filepath.Split(f.Filename)
-		if m, err := filepath.Match(gs, fn); err != nil {
-			return nil, err
-		} else if m {
-			match = true
+		for _, gss := range gs {
+			if m, err := filepath.Match(gss, fn); err != nil {
+				return nil, err
+			} else if m {
+				match = gs
+				break
+			}
+		}
+		if len(match) > 0 {
 			break
 		}
 	}
-	if !match {
+	if len(match) == 0 {
 		return nil, nil
 	}
 	l.matches++
-	_, _, _, err := l.surveyor.ReadFile(f)
+	globstr := strings.Join(match, ":")
+	surveyor, ok := l.surveyor[globstr]
+	if !ok {
+		surveyor = ecg.NewBasicSurveyor()
+		l.surveyor[globstr] = surveyor
+	}
+	_, _, _, err := surveyor.ReadFile(f)
 	if err != nil {
 		return nil, fmt.Errorf("running: %w", err)
 	}
@@ -59,18 +80,32 @@ func (l *Format) End() ([]*ecg.SummaryResult, error) {
 	if l.matches == 0 {
 		return nil, nil
 	}
-	l.surveyor.Summarize()
-	return []*ecg.SummaryResult{
-		{
-			FileGlobs:  globs,
+	results := make([]*ecg.SummaryResult, 0, len(globs))
+	for _, gs := range globs {
+		surveyor, ok := l.surveyor[strings.Join(gs, ":")]
+		if !ok {
+			continue
+		}
+		surveyor.Summarize()
+		results = append(results, &ecg.SummaryResult{
+			FileGlobs:  gs,
 			Confidence: 1,
-			Template:   l,
-			Path:       "/",
-		},
-	}, nil
+			Template: &Surveyor{
+				everyFileSurveyor: l.everyFileSurveyor,
+				surveyor:          surveyor,
+			},
+			Path: "/",
+		})
+	}
+	return results, nil
 }
 
-func (l *Format) String() (string, error) {
+type Surveyor struct {
+	everyFileSurveyor *ecg.BasicSurveyor
+	surveyor          *ecg.BasicSurveyor
+}
+
+func (l *Surveyor) String() (string, error) {
 	b := bytes.NewBuffer(nil)
 	t := template.Must(template.New("").Parse(string(ectemplate)))
 	var allFiles *ecg.BasicSurveyor
@@ -120,10 +155,9 @@ func (l *Format) String() (string, error) {
 func init() {
 	ecg.Register(func() ecg.FileFormat {
 		return ecg.NewContainer("Typescript", &Format{
-			surveyor: ecg.NewBasicSurveyor(),
+			surveyor: map[string]*ecg.BasicSurveyor{},
 		})
 	})
 }
 
-var _ ecg.BasicSurveyorGetter = (*Format)(nil)
 var _ ecg.BasicSurveyorSetter = (*Format)(nil)
