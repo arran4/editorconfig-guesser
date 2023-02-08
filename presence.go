@@ -27,7 +27,8 @@ func (l *Presence) Init() ([]*SummaryResult, error) {
 
 func (l *Presence) RunFile(f *File) ([]*SummaryResult, error) {
 	for gsi, gs := range l.globs {
-		if m, err := filepath.Match(gs, f.Filename); err != nil {
+		_, fn := filepath.Split(f.Filename)
+		if m, err := filepath.Match(gs, fn); err != nil {
 			return nil, err
 		} else if !m {
 			continue

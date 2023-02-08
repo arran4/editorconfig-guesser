@@ -20,6 +20,9 @@ var (
 func main() {
 	log.SetFlags(log.Flags() | log.Lshortfile)
 	flag.Parse()
+	if len(flag.Args()) == 0 {
+		fmt.Println("Please provide at least one directory")
+	}
 	for _, e := range flag.Args() {
 		ignore, err := gitignore.NewRepository(e)
 		if err != nil {

@@ -36,7 +36,8 @@ func (l *Format) Init() ([]*ecg.SummaryResult, error) {
 func (l *Format) RunFile(f *ecg.File) ([]*ecg.SummaryResult, error) {
 	match := false
 	for _, gs := range globs {
-		if m, err := filepath.Match(gs, f.Filename); err != nil {
+		_, fn := filepath.Split(f.Filename)
+		if m, err := filepath.Match(gs, fn); err != nil {
 			return nil, err
 		} else if m {
 			match = true
