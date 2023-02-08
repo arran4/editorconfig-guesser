@@ -365,6 +365,9 @@ func (l *BasicSurveyor) IndentSizeCalc() string {
 	}
 	for _, e := range all {
 		runLength := 0
+		if len(e) == 0 {
+			continue
+		}
 		for i := len(e); i <= longest/len(e); i++ {
 			k := strings.Repeat(e, i)
 			if _, ok := l.whitespacePrefixes[k]; ok {
@@ -378,7 +381,10 @@ func (l *BasicSurveyor) IndentSizeCalc() string {
 			}
 		}
 	}
-	return longestRun.RunStr
+	if len(longestRun.RunStr) == 0 {
+		return ""
+	}
+	return fmt.Sprintf("%d", len(longestRun.RunStr))
 }
 
 type BasicSurveyorGetter interface {
