@@ -6,26 +6,26 @@ func TestBasicSurveyor_TabWidthLineLengthCalc(t *testing.T) {
 	tests := []struct {
 		name          string
 		BasicSurveyor *BasicSurveyor
-		want          string
-		want1         string
+		wantTabWidth  string
+		wantMaxDepth  string
 	}{
 		{
 			name: "empty",
 			BasicSurveyor: &BasicSurveyor{
 				lineLengths: map[LineLengthDetail]int{},
 			},
-			want:  "",
-			want1: "",
+			wantTabWidth: "8",
+			wantMaxDepth: "",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, got1 := tt.BasicSurveyor.TabWidthLineLengthCalc()
-			if got != tt.want {
-				t.Errorf("TabWidthLineLengthCalc() got = %v, want %v", got, tt.want)
+			tabWidth, maxDepth := tt.BasicSurveyor.TabWidthLineLengthCalc()
+			if tabWidth != tt.wantTabWidth {
+				t.Errorf("TabWidthLineLengthCalc() tabWidth = %v, want %v", tabWidth, tt.wantTabWidth)
 			}
-			if got1 != tt.want1 {
-				t.Errorf("TabWidthLineLengthCalc() got1 = %v, want %v", got1, tt.want1)
+			if maxDepth != tt.wantMaxDepth {
+				t.Errorf("TabWidthLineLengthCalc() maxDepth = %v, want %v", maxDepth, tt.wantMaxDepth)
 			}
 		})
 	}
@@ -33,22 +33,22 @@ func TestBasicSurveyor_TabWidthLineLengthCalc(t *testing.T) {
 
 func TestBasicSurveyor_IndentSizeCalc(t *testing.T) {
 	tests := []struct {
-		name          string
-		BasicSurveyor *BasicSurveyor
-		want          string
+		name           string
+		BasicSurveyor  *BasicSurveyor
+		wantindentSize string
 	}{
 		{
 			name: "empty",
 			BasicSurveyor: &BasicSurveyor{
 				whitespacePrefixes: map[string]int{},
 			},
-			want: "",
+			wantindentSize: "",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.BasicSurveyor.IndentSizeCalc(); got != tt.want {
-				t.Errorf("IndentSizeCalc() = %v, want %v", got, tt.want)
+			if indentSize := tt.BasicSurveyor.IndentSizeCalc(); indentSize != tt.wantindentSize {
+				t.Errorf("IndentSizeCalc() = %v, want %v", indentSize, tt.wantindentSize)
 			}
 		})
 	}
