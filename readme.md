@@ -29,7 +29,7 @@ $ ecguess . | tee .editorconfig
 
 To save it without viewing it (or using shell piping / output redirection) use:
 ```bash
-$ ecguess . --save
+$ ecguess . -save
 ```
 
 # Support file formats
