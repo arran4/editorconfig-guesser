@@ -187,9 +187,9 @@ func (l *AllFiles) ReadFile(fd *File) (string, bool, *LineSurvey, error) {
 	} else {
 		l.finalNewLineBalance.False += 1
 	}
-	if survey.WindowNewlines < survey.NewLines/5 { // 20% threshold
+	if survey.LinuxNewlinesPercent() >= .80 { // 20% threshold
 		l.lineEndings.Unix += 1
-	} else if survey.WindowNewlines > survey.NewLines/5*4 { // 80% threshold
+	} else if survey.WindowNewlinesPercent() >= .8 { // 80% threshold
 		l.lineEndings.Windows += 1
 	}
 	if !survey.TrailingWhitespaceCommon() {
@@ -201,23 +201,58 @@ func (l *AllFiles) ReadFile(fd *File) (string, bool, *LineSurvey, error) {
 }
 
 func (l *AllFiles) Summarize() {
-	if l.Files > 0 && (l.finalNewLineBalance.True*100)/l.Files > 80 { // 20% threshold
+	if l.FinalNewLineBalanceTruePercent() > .80 {
 		l.InsertFinalNewline = "true"
-	} else if l.Files > 0 && (l.finalNewLineBalance.False*100)/l.Files > 80 { // 20% threshold
+	} else if l.FinalNewLineBalanceFalsePercent() > .80 {
 		l.InsertFinalNewline = "false"
 	}
 	l.Charset = l.CharacterSets.BestFit()
 	l.Charsets = l.CharacterSets.Distribution(l.Files)
-	if l.Files > 0 && (l.trailingSpaceOkay.True*100)/l.Files > 80 { // 20% threshold
+	if l.TrailingSpaceOkayPercent() >= .80 { // 20% threshold
 		l.TrimTrailingWhitespace = "true"
-	} else if l.Files > 0 && (l.trailingSpaceOkay.False*100)/l.Files > 80 { // 20% threshold
+	} else if l.TrailingSpaceOkayPercent() <= .20 { // 20% threshold
 		l.TrimTrailingWhitespace = "false"
 	}
-	if l.Files > 0 && (l.lineEndings.Unix*100)/l.Files > 80 { // 20% threshold
+	if l.UnixLineEndingPercent() >= .80 {
 		l.EndOfLine = "lf"
-	} else if l.Files > 0 && (l.lineEndings.Windows*100)/l.Files > 80 { // 80% threshold
+	} else if l.WindowsLineEndingPercent() >= .80 {
 		l.EndOfLine = "crlf"
 	}
+}
+
+func (l *AllFiles) WindowsLineEndingPercent() float64 {
+	if l.Files > 0 {
+		return float64(l.lineEndings.Windows) / float64(l.Files)
+	}
+	return 0
+}
+
+func (l *AllFiles) UnixLineEndingPercent() float64 {
+	if l.Files > 0 {
+		return float64(l.lineEndings.Unix) / float64(l.Files)
+	}
+	return 0
+}
+
+func (l *AllFiles) FinalNewLineBalanceTruePercent() float64 {
+	if l.Files > 0 {
+		return float64(l.finalNewLineBalance.True) / float64(l.Files)
+	}
+	return 0
+}
+
+func (l *AllFiles) FinalNewLineBalanceFalsePercent() float64 {
+	if l.Files > 0 {
+		return float64(l.finalNewLineBalance.False) / float64(l.Files)
+	}
+	return 0
+}
+
+func (l *AllFiles) TrailingSpaceOkayPercent() float64 {
+	if l.Files > 0 {
+		return float64(l.trailingSpaceOkay.True) / float64(l.Files)
+	}
+	return 0
 }
 
 type AllFilesGetter interface {

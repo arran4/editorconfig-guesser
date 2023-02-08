@@ -9,9 +9,23 @@ type LineSurvey struct {
 	WindowNewlines   int
 }
 
-func (s *LineSurvey) TrailingWhitespaceCommon() bool {
+func (survey *LineSurvey) TrailingWhitespaceCommon() bool {
 	// TODO this is too simplistic -- I don't know what circumstance this would be for.... Request PR / case study
-	return len(s.WhitespaceSuffix) > 5
+	return len(survey.WhitespaceSuffix) > 5
+}
+
+func (survey *LineSurvey) LinuxNewlinesPercent() float64 {
+	if survey.NewLines == 0 {
+		return 0
+	}
+	return float64(survey.NewLines-survey.WindowNewlines) / float64(survey.NewLines)
+}
+
+func (survey *LineSurvey) WindowNewlinesPercent() float64 {
+	if survey.NewLines == 0 {
+		return 0
+	}
+	return float64(survey.WindowNewlines) / float64(survey.NewLines)
 }
 
 func LineSurveySample(b []byte) *LineSurvey {
