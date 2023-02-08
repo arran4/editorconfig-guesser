@@ -11,6 +11,7 @@ import (
 	"io"
 	"io/fs"
 	"log"
+	"math"
 	"os"
 	"sort"
 	"strings"
@@ -341,10 +342,11 @@ func (l *BasicSurveyor) TabWidthLineLengthCalc() (string, string) {
 	const minimumDepth = minimum / step
 	for k, v := range l.lineLengths {
 		for _, dk := range depthKeys {
-			l := k.length + (k.tabIndentation * (dk - 1))
-			tabWidths[dk].DepthCount[l/step] += v
-			if l/step > tabWidths[dk].MaxStep {
-				tabWidths[dk].MaxStep = l / step
+			l := k.length + k.tabIndentation*dk
+			depth := int(math.Ceil(float64(l)/float64(step))) - 1
+			tabWidths[dk].DepthCount[depth] += v
+			if depth > tabWidths[dk].MaxStep {
+				tabWidths[dk].MaxStep = depth
 			}
 		}
 	}
@@ -355,9 +357,9 @@ func (l *BasicSurveyor) TabWidthLineLengthCalc() (string, string) {
 			return al < bl
 		}
 		if tabWidths[b].MaxStep != tabWidths[a].MaxStep {
-			return tabWidths[b].MaxStep > tabWidths[a].MaxStep
+			return tabWidths[b].MaxStep < tabWidths[a].MaxStep
 		}
-		return a > b
+		return a >= b
 	})
 	lengths := maps.Keys(tabWidths[depthKeys[0]].DepthCount)
 	sort.Sort(sort.Reverse(sort.IntSlice(lengths)))
