@@ -2,11 +2,14 @@ package ecg
 
 import "bytes"
 
+type LineLengthDetail struct{ length, tabIndentation int }
+
 type LineSurvey struct {
 	NewLines         int
 	WhitespacePrefix map[string]int
 	WhitespaceSuffix map[string]int
 	WindowNewlines   int
+	LineLengths      map[LineLengthDetail]int
 }
 
 func (survey *LineSurvey) TrailingWhitespaceCommon() bool {
@@ -33,8 +36,10 @@ func LineSurveySample(b []byte) *LineSurvey {
 		NewLines:         0,
 		WhitespacePrefix: map[string]int{},
 		WhitespaceSuffix: map[string]int{},
+		LineLengths:      map[LineLengthDetail]int{},
 	}
 	lineLength := 0
+	lineTabCount := 0
 	lastLF := -1
 	lastNWS := -1
 	lastCR := -1
@@ -59,11 +64,26 @@ func LineSurveySample(b []byte) *LineSurvey {
 			}
 			suffix := string(rns[start:end])
 			ls.WhitespaceSuffix[suffix] = ls.WhitespaceSuffix[suffix] + 1
+			count := lineTabCount
+			if count == -1 {
+				count = 0
+			}
+			ls.LineLengths[LineLengthDetail{length: (end) - (lastLF + 1), tabIndentation: count}] += 1
+			lineTabCount = 0
 			lastLF = i
+		case '\t':
+			if lastNWS <= lastLF {
+				lineTabCount++
+			}
 		case '\r':
 			lastCR = i
-			fallthrough
-		case ' ', '\t':
+			if lastNWS <= lastLF {
+				lineTabCount = 0
+			}
+		case ' ':
+			if lastNWS <= lastLF {
+				lineTabCount = 0
+			}
 		default:
 			if lastNWS <= lastLF {
 				start := lastLF + 1
@@ -74,8 +94,11 @@ func LineSurveySample(b []byte) *LineSurvey {
 				if end < start {
 					end = start
 				}
-				suffix := string(rns[start:end])
-				ls.WhitespacePrefix[suffix] = ls.WhitespacePrefix[suffix] + 1
+				if lineTabCount != end-start {
+					lineTabCount = -1
+				}
+				prefix := string(rns[start:end])
+				ls.WhitespacePrefix[prefix] = ls.WhitespacePrefix[prefix] + 1
 			}
 			lastNWS = i
 		}
