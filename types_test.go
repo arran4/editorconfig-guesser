@@ -22,7 +22,7 @@ func TestBasicSurveyor_TabWidthLineLengthCalc(t *testing.T) {
 			BasicSurveyor: &BasicSurveyor{
 				lineLengths: map[LineLengthDetail]int{
 					LineLengthDetail{length: 30}: 1,
-					LineLengthDetail{length: 60}: 1,
+					LineLengthDetail{length: 59}: 1,
 					LineLengthDetail{length: 50}: 1,
 				},
 			},

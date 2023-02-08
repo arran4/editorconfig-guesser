@@ -333,7 +333,7 @@ func (l *BasicSurveyor) TabWidthLineLengthCalc() (string, string) {
 	slices.SortFunc(depthKeys, func(a, b int) bool {
 		al := len(tabWidths[a].DepthCount)
 		bl := len(tabWidths[b].DepthCount)
-		if al != bl {
+		if al == bl {
 			return a > b
 		}
 		return al < bl
