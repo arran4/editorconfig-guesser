@@ -305,12 +305,27 @@ func (l *BasicSurveyor) TabPercent() float64 {
 	return float64(count) / float64(total)
 }
 
+func MinMax(array []int) (int, int) {
+	var max int = array[0]
+	var min int = array[0]
+	for _, value := range array {
+		if max < value {
+			max = value
+		}
+		if min > value {
+			min = value
+		}
+	}
+	return min, max
+}
+
 func (l *BasicSurveyor) TabWidthLineLengthCalc() (string, string) {
 	if len(l.lineLengths) == 0 {
 		return "", ""
 	}
 	type TabWidthDetail struct {
 		DepthCount map[int]int
+		MaxStep    int
 	}
 	tabWidths := map[int]*TabWidthDetail{}
 	var depthKeys []int
@@ -328,23 +343,32 @@ func (l *BasicSurveyor) TabWidthLineLengthCalc() (string, string) {
 		for _, dk := range depthKeys {
 			l := k.length + (k.tabIndentation * (dk - 1))
 			tabWidths[dk].DepthCount[l/step] += v
+			if l/step > tabWidths[dk].MaxStep {
+				tabWidths[dk].MaxStep = l / step
+			}
 		}
 	}
 	slices.SortFunc(depthKeys, func(a, b int) bool {
 		al := len(tabWidths[a].DepthCount)
 		bl := len(tabWidths[b].DepthCount)
-		if al == bl {
-			return a > b
+		if al != bl {
+			return al < bl
 		}
-		return al < bl
+		if tabWidths[b].MaxStep != tabWidths[a].MaxStep {
+			return tabWidths[b].MaxStep > tabWidths[a].MaxStep
+		}
+		return a > b
 	})
 	lengths := maps.Keys(tabWidths[depthKeys[0]].DepthCount)
 	sort.Sort(sort.Reverse(sort.IntSlice(lengths)))
-	max := ""
-	if len(lengths) > 0 && minimumDepth <= lengths[0] {
-		max = fmt.Sprintf("%d", (lengths[0]+1)*step)
+	p := 0
+	//for ;p < len(lengths) && ; p++ {
+	//
+	//}
+	if len(lengths) > 0 && p < len(lengths) && minimumDepth <= lengths[p] {
+		return fmt.Sprintf("%d", depthKeys[0]), fmt.Sprintf("%d", (lengths[p]+1)*step)
 	}
-	return fmt.Sprintf("%d", depthKeys[0]), max
+	return "8", ""
 }
 
 func (l *BasicSurveyor) SpaceMaxLineLengthCalc() string {
@@ -365,22 +389,31 @@ func (l *BasicSurveyor) IndentSizeCalc() string {
 	var longestRun struct {
 		RunLength int
 		RunStr    string
+		RunSize   int
 	}
 	for _, e := range all {
 		runLength := 0
+		runSize := 0
 		if len(e) == 0 {
 			continue
 		}
 		for i := len(e); i <= longest/len(e); i++ {
 			k := strings.Repeat(e, i)
-			if _, ok := l.whitespacePrefixes[k]; ok {
+			if v, ok := l.whitespacePrefixes[k]; ok {
 				runLength++
+				runSize += v
 			} else {
-				if runLength > longestRun.RunLength {
-					longestRun.RunStr = e
-					longestRun.RunLength = runLength
-				}
 				runLength = 0
+				runSize = 0
+			}
+			if runLength > longestRun.RunLength {
+				longestRun.RunStr = e
+				longestRun.RunLength = runLength
+				longestRun.RunSize = runSize
+			} else if runLength == longestRun.RunLength && runSize > longestRun.RunSize {
+				longestRun.RunStr = e
+				longestRun.RunLength = runLength
+				longestRun.RunSize = runSize
 			}
 		}
 	}

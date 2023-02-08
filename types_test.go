@@ -45,10 +45,10 @@ func TestBasicSurveyor_TabWidthLineLengthCalc(t *testing.T) {
 			name: "Tab depth pushes line to min",
 			BasicSurveyor: &BasicSurveyor{
 				lineLengths: map[LineLengthDetail]int{
-					LineLengthDetail{length: 84}: 1,
+					LineLengthDetail{length: 53, tabIndentation: 1}: 1,
 				},
 			},
-			wantTabWidth: "6",
+			wantTabWidth: "8",
 			wantMaxDepth: "80",
 		},
 		{
@@ -64,16 +64,17 @@ func TestBasicSurveyor_TabWidthLineLengthCalc(t *testing.T) {
 			wantMaxDepth: "180",
 		},
 		{
-			name: "A really long line tab pushes it under",
+			name: "A really long line tab pushes it under", // TODO try make it group instead of just get the largest rep
 			BasicSurveyor: &BasicSurveyor{
 				lineLengths: map[LineLengthDetail]int{
 					LineLengthDetail{length: 30, tabIndentation: 2}:  1,
 					LineLengthDetail{length: 168, tabIndentation: 2}: 1,
+					LineLengthDetail{length: 180, tabIndentation: 0}: 2,
 					LineLengthDetail{length: 50, tabIndentation: 2}:  1,
 				},
 			},
 			wantTabWidth: "6",
-			wantMaxDepth: "160",
+			wantMaxDepth: "180",
 		},
 	}
 	for _, tt := range tests {
