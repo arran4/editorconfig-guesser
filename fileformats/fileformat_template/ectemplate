@@ -1,0 +1,28 @@
+{{ if $.InsertFinalNewline -}}
+    insert_final_newline = {{$.InsertFinalNewline}}
+{{end -}}
+{{ if $.Charset -}}
+    charset = {{$.Charset}} # {{ $.Charsets }}
+{{else -}}
+    # charset = ??? {{$.Charsets }}
+{{end -}}
+{{ if $.TrimTrailingWhitespace -}}
+    trim_trailing_whitespace = true
+{{end -}}
+{{ if $.EndOfLine -}}
+    end_of_line = {{ $.EndOfLine }}
+{{end -}}
+{{ if $.IndentStyle -}}
+    indent_style = {{ $.IndentStyle }}
+{{end -}}
+{{ if $.IndentSize -}}
+    indent_size = {{ $.IndentSize }}
+{{end -}}
+{{ if $.MaxLineLength -}}
+    max_line_length = {{ $.MaxLineLength }}
+{{end -}}
+{{ if $.TabWidth -}}
+    tab_width = {{ $.TabWidth }}
+{{end -}}
+
+
