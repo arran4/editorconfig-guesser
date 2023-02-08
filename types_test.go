@@ -14,7 +14,7 @@ func TestBasicSurveyor_TabWidthLineLengthCalc(t *testing.T) {
 			BasicSurveyor: &BasicSurveyor{
 				lineLengths: map[LineLengthDetail]int{},
 			},
-			wantTabWidth: "8",
+			wantTabWidth: "",
 			wantMaxDepth: "",
 		},
 		{

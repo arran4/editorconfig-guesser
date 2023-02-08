@@ -306,6 +306,9 @@ func (l *BasicSurveyor) TabPercent() float64 {
 }
 
 func (l *BasicSurveyor) TabWidthLineLengthCalc() (string, string) {
+	if len(l.lineLengths) == 0 {
+		return "", ""
+	}
 	type TabWidthDetail struct {
 		DepthCount map[int]int
 	}
@@ -330,8 +333,8 @@ func (l *BasicSurveyor) TabWidthLineLengthCalc() (string, string) {
 	slices.SortFunc(depthKeys, func(a, b int) bool {
 		al := len(tabWidths[a].DepthCount)
 		bl := len(tabWidths[b].DepthCount)
-		if al == bl {
-			return b < a
+		if al != bl {
+			return a > b
 		}
 		return al < bl
 	})
