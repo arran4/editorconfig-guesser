@@ -17,7 +17,7 @@ func Register(fileFormat FileFormatFactory) {
 }
 
 func FileFormats() []FileFormat {
-	ffs := make([]FileFormat, len(fileFormats), len(fileFormats))
+	ffs := make([]FileFormat, len(fileFormats))
 	var af *BasicSurveyor
 	for i, fff := range fileFormats {
 		ffs[i] = fff()
