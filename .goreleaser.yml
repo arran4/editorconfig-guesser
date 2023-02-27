@@ -1,4 +1,4 @@
-project_name: cards
+project_name: ecguess
 builds:
   -
     id: "ecguess"
