@@ -38,6 +38,11 @@ Currently:
 * `*.ts;*.js`  - [Generic](fileformats/generic)
 * `*.cpp;*.h;*.c`  - [Generic](fileformats/generic)
 * `*.py`  - [Generic](fileformats/generic)
+* `*.java`  - [Custom](fileformats/java)
+* `*.rb`  - [Custom](fileformats/ruby)
+* `*.php`  - [Custom](fileformats/php)
+* `*.sh`  - [Custom](fileformats/shell)
+* `*.rs`  - [Custom](fileformats/rust)
 * `*.go;go.mod;go.sum` - [Custom](fileformats/go)
 * `Makefile;*.mak` - [Custom](fileformats/gnumake)
 
