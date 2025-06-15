@@ -1,19 +1,23 @@
+version: 2
 project_name: ecguess
 builds:
-  -
-    id: "ecguess"
-    binary: "ecguess"
+  - id: ecguess
+    binary: ecguess
     dir: cmd/ecguess
     env:
       - CGO_ENABLED=0
+    flags:
+      - "-trimpath"
     goos:
       - linux
       - windows
       - darwin
+      - freebsd
     goarch:
       - amd64
       - arm
       - arm64
+      - 386
     goarm:
       - "6"
       - "7"
@@ -43,6 +47,8 @@ nfpms:
       - apk
       - deb
       - rpm
+      - termux.deb
+      - archlinux
     release: 1
     section: default
     priority: extra

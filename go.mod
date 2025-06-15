@@ -1,6 +1,8 @@
 module editorconfig-guesser
 
-go 1.20
+go 1.23.0
+
+toolchain go1.23.8
 
 require (
 	github.com/alecthomas/units v0.0.0-20211218093645-b94a6e3cc137
