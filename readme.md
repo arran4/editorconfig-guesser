@@ -40,6 +40,9 @@ Currently:
 * `*.py`  - [Generic](fileformats/generic)
 * `*.go;go.mod;go.sum` - [Custom](fileformats/go)
 * `Makefile;*.mak` - [Custom](fileformats/gnumake)
+* `*.java` - [Custom](fileformats/java)
+* `*.rb;Rakefile;Gemfile` - [Custom](fileformats/ruby)
+* `Cargo.toml;*.rs` - [Custom](fileformats/rust)
 
 Happy to accept PRs for more.
 
