@@ -83,7 +83,11 @@ func (fd *File) IsBinary() bool {
 	if err != nil {
 		return false // So something else can generate the error TODO
 	}
-	defer fh.Close()
+	defer func() {
+		if cerr := fh.Close(); cerr != nil {
+			log.Printf("Error: closing %s: %s", fd.Filename, cerr)
+		}
+	}()
 	testBytes := make([]byte, 1*units.KiB)
 	n, err := fh.Read(testBytes)
 	if err != nil {
@@ -307,8 +311,8 @@ func (l *BasicSurveyor) TabPercent() float64 {
 }
 
 func MinMax(array []int) (int, int) {
-	var max int = array[0]
-	var min int = array[0]
+	max := array[0]
+	min := array[0]
 	for _, value := range array {
 		if max < value {
 			max = value
