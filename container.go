@@ -33,19 +33,19 @@ func (l *Container) Name() string {
 
 func (l *Container) Start() chan *File {
 	l.reader = make(chan *File)
-	l.WaitGroup.Add(1)
+	l.Add(1)
 	go l.Run()
 	return l.reader
 }
 
 func (l *Container) Done() ([]*SummaryResult, error) {
-	l.WaitGroup.Wait()
+	l.Wait()
 	return l.summary, l.error()
 }
 
 func (l *Container) Run() {
 	defer l.WaitGroup.Done()
-	if sr, err := l.FileRunner.Init(); err != nil {
+	if sr, err := l.Init(); err != nil {
 		l.errors = append(l.errors, err)
 	} else if len(sr) > 0 {
 		l.summary = append(l.summary, sr...)
@@ -56,13 +56,13 @@ func (l *Container) Run() {
 			l.reader = nil
 			break
 		}
-		if sr, err := l.FileRunner.RunFile(f); err != nil {
+		if sr, err := l.RunFile(f); err != nil {
 			l.errors = append(l.errors, err)
 		} else if len(sr) > 0 {
 			l.summary = append(l.summary, sr...)
 		}
 	}
-	if sr, err := l.FileRunner.End(); err != nil {
+	if sr, err := l.End(); err != nil {
 		l.errors = append(l.errors, err)
 	} else if len(sr) > 0 {
 		l.summary = append(l.summary, sr...)
