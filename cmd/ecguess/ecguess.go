@@ -26,27 +26,30 @@ func main() {
 	for _, e := range flag.Args() {
 		ignore, err := gitignore.NewRepository(e)
 		if err != nil {
-			log.Panicf("Loading git ignores")
+			log.Printf("Loading git ignores failed: %s", err)
+			ignore = nil
 		}
 
 		template, err := ecg.RunInDir(os.DirFS(e), func(file *ecg.File) bool {
-			for _, e := range filepath.SplitList(file.Filename) {
-				if strings.HasPrefix(e, ".") && e != "." {
+			for _, part := range filepath.SplitList(file.Filename) {
+				if strings.HasPrefix(part, ".") && part != "." {
 					if *verboseFlag {
-						log.Printf("Skipping %s as it has a hidden file in the path", e)
+						log.Printf("Skipping %s as it has a hidden file in the path: %s", file.Filename, part)
 					}
 					return true
 				}
 			}
-			if ignore.Ignore(file.Filename) {
+			if ignore != nil && ignore.Ignore(filepath.Join(e, file.Filename)) {
 				if *verboseFlag {
-					log.Printf("Skipping %s as it is in the .gitignore file", e)
+					log.Printf("Skipping %s as it is in the .gitignore file", file.Filename)
 				}
+				return true
 			}
 			if file.IsBinary() {
 				if *verboseFlag {
-					log.Printf("Skipping %s as it is considered a binary file", e)
+					log.Printf("Skipping %s as it is considered a binary file", file.Filename)
 				}
+				return true
 			}
 			return false
 		})
