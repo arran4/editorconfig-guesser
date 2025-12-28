@@ -26,6 +26,44 @@ var (
 		[]string{
 			"*.py",
 		},
+		[]string{
+			"*.java",
+		},
+		[]string{
+			"*.cs",
+		},
+		[]string{
+			"*.json",
+		},
+		[]string{
+			"*.yaml",
+			"*.yml",
+		},
+		[]string{
+			"*.xml",
+		},
+		[]string{
+			"*.html",
+			"*.htm",
+		},
+		[]string{
+			"*.css",
+		},
+		[]string{
+			"*.rb",
+		},
+		[]string{
+			"*.rs",
+		},
+		[]string{
+			"*.php",
+		},
+		[]string{
+			"*.md",
+		},
+		[]string{
+			"*.sh",
+		},
 	}
 )
 
@@ -154,7 +192,7 @@ func (l *Surveyor) String() (string, error) {
 
 func init() {
 	ecg.Register(func() ecg.FileFormat {
-		return ecg.NewContainer("Typescript", &Format{
+		return ecg.NewContainer("Generic", &Format{
 			surveyor: map[string]*ecg.BasicSurveyor{},
 		})
 	})
