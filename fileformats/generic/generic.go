@@ -15,54 +15,51 @@ var (
 	ectemplate []byte
 	globs      = [][]string{
 		[]string{
-			"*.ts",
-			"*.js",
+			"*.ts", // TODO: Add full support
+			"*.js", // TODO: Add full support
 		},
 		[]string{
-			"*.cpp",
-			"*.h",
-			"*.c",
+			"*.cpp", // TODO: Add full support
+			"*.h",   // TODO: Add full support
+			"*.c",   // TODO: Add full support
 		},
 		[]string{
-			"*.py",
+			"*.py", // TODO: Add full support
 		},
 		[]string{
-			"*.java",
+			"*.java", // TODO: Add full support
 		},
 		[]string{
-			"*.cs",
+			"*.cs", // TODO: Add full support
 		},
 		[]string{
-			"*.json",
+			"*.json", // TODO: Add full support
 		},
 		[]string{
-			"*.yaml",
-			"*.yml",
+			"*.yaml", // TODO: Add full support
+			"*.yml",  // TODO: Add full support
 		},
 		[]string{
-			"*.xml",
+			"*.xml", // TODO: Add full support
 		},
 		[]string{
-			"*.html",
-			"*.htm",
+			"*.html", // TODO: Add full support
+			"*.htm",  // TODO: Add full support
 		},
 		[]string{
-			"*.css",
+			"*.css", // TODO: Add full support
 		},
 		[]string{
-			"*.rb",
+			"*.rb", // TODO: Add full support
 		},
 		[]string{
-			"*.rs",
+			"*.php", // TODO: Add full support
 		},
 		[]string{
-			"*.php",
+			"*.md", // TODO: Add full support
 		},
 		[]string{
-			"*.md",
-		},
-		[]string{
-			"*.sh",
+			"*.sh", // TODO: Add full support
 		},
 	}
 )
