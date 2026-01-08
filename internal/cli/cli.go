@@ -1,9 +1,8 @@
-package main
+package cli
 
 import (
 	ecg "editorconfig-guesser"
 	_ "editorconfig-guesser/fileformats"
-	"flag"
 	"fmt"
 	"github.com/denormal/go-gitignore"
 	"log"
@@ -12,18 +11,17 @@ import (
 	"strings"
 )
 
-var (
-	saveFlag    = flag.Bool("save", false, "Save the file as .editorconfig")
-	verboseFlag = flag.Bool("verbose", false, "Logs more than what is required")
-)
-
-func main() {
+// Run is a subcommand `ecguess`
+// Flags:
+//   saveFlag: -s --save (default: false) Save the file as .editorconfig
+//   verboseFlag: -v --verbose (default: false) Logs more than what is required
+//   args: ... Directories
+func Run(saveFlag bool, verboseFlag bool, args ...string) {
 	log.SetFlags(log.Flags() | log.Lshortfile)
-	flag.Parse()
-	if len(flag.Args()) == 0 {
+	if len(args) == 0 {
 		fmt.Println("Please provide at least one directory")
 	}
-	for _, e := range flag.Args() {
+	for _, e := range args {
 		ignore, err := gitignore.NewRepository(e)
 		if err != nil {
 			log.Printf("Loading git ignores failed: %s", err)
@@ -33,20 +31,20 @@ func main() {
 		template, err := ecg.RunInDir(os.DirFS(e), func(file *ecg.File) bool {
 			for _, part := range filepath.SplitList(file.Filename) {
 				if strings.HasPrefix(part, ".") && part != "." {
-					if *verboseFlag {
+					if verboseFlag {
 						log.Printf("Skipping %s as it has a hidden file in the path: %s", file.Filename, part)
 					}
 					return true
 				}
 			}
 			if ignore != nil && ignore.Ignore(filepath.Join(e, file.Filename)) {
-				if *verboseFlag {
+				if verboseFlag {
 					log.Printf("Skipping %s as it is in the .gitignore file", file.Filename)
 				}
 				return true
 			}
 			if file.IsBinary() {
-				if *verboseFlag {
+				if verboseFlag {
 					log.Printf("Skipping %s as it is considered a binary file", file.Filename)
 				}
 				return true
@@ -56,15 +54,15 @@ func main() {
 		if err != nil {
 			log.Panicf("Error: %s", err)
 		}
-		if len(flag.Args()) > 1 {
+		if len(args) > 1 {
 			fmt.Println("// ", e)
 		}
 		fmt.Println(template)
-		if len(flag.Args()) > 1 {
+		if len(args) > 1 {
 			fmt.Println()
 			fmt.Println()
 		}
-		if *saveFlag {
+		if saveFlag {
 			outfn := filepath.Join(e, ".editorconfig")
 			if err := os.WriteFile(outfn, []byte(template), 0644); err != nil {
 				log.Panicf("Error saving %s because %s", outfn, err)
