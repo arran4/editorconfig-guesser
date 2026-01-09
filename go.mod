@@ -1,8 +1,6 @@
 module editorconfig-guesser
 
-go 1.23.0
-
-toolchain go1.23.8
+go 1.25.3
 
 require (
 	github.com/alecthomas/units v0.0.0-20211218093645-b94a6e3cc137
@@ -14,6 +12,9 @@ require (
 )
 
 require (
+	github.com/arran4/go-subcommand v0.0.12 // indirect
 	github.com/danwakefield/fnmatch v0.0.0-20160403171240-cbb64ac3d964 // indirect
+	golang.org/x/mod v0.31.0 // indirect
 	golang.org/x/net v0.38.0 // indirect
+	golang.org/x/text v0.32.0 // indirect
 )
