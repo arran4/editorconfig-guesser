@@ -24,12 +24,6 @@ var (
 			"*.c",   // TODO: Add full support
 		},
 		[]string{
-			"*.py", // TODO: Add full support
-		},
-		[]string{
-			"*.java", // TODO: Add full support
-		},
-		[]string{
 			"*.cs", // TODO: Add full support
 		},
 		[]string{
@@ -48,9 +42,6 @@ var (
 		},
 		[]string{
 			"*.css", // TODO: Add full support
-		},
-		[]string{
-			"*.rb", // TODO: Add full support
 		},
 		[]string{
 			"*.php", // TODO: Add full support
