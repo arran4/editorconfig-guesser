@@ -1,7 +1,7 @@
-package rust
+package ruby
 
 import (
-	"editorconfig-guesser"
+	ecg "editorconfig-guesser"
 	_ "embed"
 )
 
@@ -13,10 +13,11 @@ var (
 func init() {
 	ecg.Register(func() ecg.FileFormat {
 		return ecg.NewPresence(
-			"Rust",
+			"Ruby",
 			[]string{
-				"Cargo.toml",
-				"*.rs",
+				"*.rb",
+				"Rakefile",
+				"Gemfile",
 			},
 			ectemplate,
 		)

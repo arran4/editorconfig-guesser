@@ -1,7 +1,7 @@
-package rust
+package java
 
 import (
-	"editorconfig-guesser"
+	ecg "editorconfig-guesser"
 	_ "embed"
 )
 
@@ -13,10 +13,9 @@ var (
 func init() {
 	ecg.Register(func() ecg.FileFormat {
 		return ecg.NewPresence(
-			"Rust",
+			"Java",
 			[]string{
-				"Cargo.toml",
-				"*.rs",
+				"*.java",
 			},
 			ectemplate,
 		)
