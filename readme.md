@@ -43,6 +43,8 @@ Currently:
 * `*.rb;Rakefile;Gemfile` - [Custom](fileformats/ruby)
 * `Cargo.toml;*.rs` - [Custom](fileformats/rust)
 * `*.py` - [Custom](fileformats/python)
+* `*.php` - [Custom](fileformats/php)
+* `*.sh;*.bash;*.zsh;*.fish;*.ksh;*.csh;*.tcsh` - [Custom](fileformats/shell)
 
 Happy to accept PRs for more.
 
