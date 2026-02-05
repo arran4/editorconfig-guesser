@@ -9,7 +9,6 @@ type FileFormatFactory func() FileFormat
 
 var (
 	fileFormats []FileFormatFactory
-	sorted      = false
 )
 
 func Register(fileFormat FileFormatFactory) {
