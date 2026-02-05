@@ -1,0 +1,69 @@
+Nested complex project
+-- src/frontend/app.ts --
+function start() {
+  console.log('Starting app...');
+  if (true) {
+    return;
+  }
+}
+-- src/backend/main.go --
+package main
+
+import "fmt"
+
+func main() {
+	fmt.Println("Backend running")
+}
+-- scripts/deploy.sh --
+#!/bin/bash
+if [ "$1" == "prod" ]; then
+  echo "Deploying to production"
+fi
+-- config/settings.yaml --
+app:
+  name: "MyApp"
+  version: "1.0.0"
+  logging:
+    level: "debug"
+-- expected.editorconfig --
+# EditorConfig is awesome: https://EditorConfig.org
+
+# top-most EditorConfig file
+root = true
+[*]
+insert_final_newline = true
+# charset = ???  (100.0%)
+trim_trailing_whitespace = true
+end_of_line = lf
+# tab_width = to taste (probably better in ~/.editorconfig
+
+
+[*.go]
+indent_style = tab
+indent_size = 4
+
+[*.sh]
+insert_final_newline = true
+# charset = ???  (100.0%)
+trim_trailing_whitespace = true
+end_of_line = lf
+indent_style = spaces
+max_line_length = 8
+
+[{*.ts,*.js}]
+insert_final_newline = true
+# charset = ???  (100.0%)
+trim_trailing_whitespace = true
+end_of_line = lf
+indent_style = spaces
+indent_size = 2
+max_line_length = 8
+
+[{*.yaml,*.yml}]
+insert_final_newline = true
+# charset = ???  (100.0%)
+trim_trailing_whitespace = true
+end_of_line = lf
+indent_style = spaces
+indent_size = 2
+max_line_length = 8
