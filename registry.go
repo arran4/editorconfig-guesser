@@ -32,10 +32,7 @@ func FileFormats() []FileFormat {
 			}
 		}
 	}
-	if !sorted {
-		sort.Sort(FileFormatsSorter(ffs))
-		sorted = true
-	}
+	sort.Sort(FileFormatsSorter(ffs))
 	return ffs
 }
 
