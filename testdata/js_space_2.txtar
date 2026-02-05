@@ -1,0 +1,29 @@
+JavaScript with 2 spaces
+-- index.js --
+function hello() {
+  console.log('world');
+  if (true) {
+    return;
+  }
+}
+-- expected.editorconfig --
+# EditorConfig is awesome: https://EditorConfig.org
+
+# top-most EditorConfig file
+root = true
+[*]
+insert_final_newline = true
+# charset = ???  (100.0%)
+trim_trailing_whitespace = true
+end_of_line = lf
+# tab_width = to taste (probably better in ~/.editorconfig
+
+
+[{*.ts,*.js}]
+insert_final_newline = true
+# charset = ???  (100.0%)
+trim_trailing_whitespace = true
+end_of_line = lf
+indent_style = spaces
+indent_size = 2
+max_line_length = 8

@@ -9,7 +9,6 @@ type FileFormatFactory func() FileFormat
 
 var (
 	fileFormats []FileFormatFactory
-	sorted      = false
 )
 
 func Register(fileFormat FileFormatFactory) {
@@ -32,10 +31,7 @@ func FileFormats() []FileFormat {
 			}
 		}
 	}
-	if !sorted {
-		sort.Sort(FileFormatsSorter(ffs))
-		sorted = true
-	}
+	sort.Sort(FileFormatsSorter(ffs))
 	return ffs
 }
 
