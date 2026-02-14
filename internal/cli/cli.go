@@ -11,12 +11,16 @@ import (
 	"strings"
 )
 
-// Run is a subcommand `ecguess`
+// Root is a subcommand `ecguess`
+func Root() {}
+
+// Generate is a subcommand `ecguess generate`
 // Flags:
-//   saveFlag: -s --save (default: false) Save the file as .editorconfig
-//   verboseFlag: -v --verbose (default: false) Logs more than what is required
-//   args: ... Directories
-func Run(saveFlag bool, verboseFlag bool, args ...string) {
+// 	saveFlag: -s --save (default: false) Save the file as .editorconfig
+// 	verboseFlag: -v --verbose (default: false) Logs more than what is required
+// 	args: ... Directories
+//
+func Generate(saveFlag bool, verboseFlag bool, args ...string) {
 	log.SetFlags(log.Flags() | log.Lshortfile)
 	if len(args) == 0 {
 		fmt.Println("Please provide at least one directory")
