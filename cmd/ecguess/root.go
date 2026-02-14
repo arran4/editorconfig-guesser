@@ -5,10 +5,8 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io"
 	"os"
 
-	"editorconfig-guesser/cmd/ecguess/templates"
 	"editorconfig-guesser/internal/cli"
 )
 
@@ -46,10 +44,6 @@ func NewUserError(err error, msg string) *UserError {
 	return &UserError{Err: err, Msg: msg}
 }
 
-func executeUsage(out io.Writer, templateName string, data interface{}) error {
-	return templates.GetTemplates().ExecuteTemplate(out, templateName, data)
-}
-
 type RootCmd struct {
 	*flag.FlagSet
 	Commands      map[string]Cmd
@@ -64,7 +58,7 @@ type RootCmd struct {
 
 func (c *RootCmd) Usage() {
 	fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
-	c.FlagSet.PrintDefaults()
+	c.PrintDefaults()
 	fmt.Fprintln(os.Stderr, "  Commands:")
 	for name := range c.Commands {
 		fmt.Fprintf(os.Stderr, "    %s\n", name)
@@ -73,7 +67,7 @@ func (c *RootCmd) Usage() {
 
 func (c *RootCmd) UsageRecursive() {
 	fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
-	c.FlagSet.PrintDefaults()
+	c.PrintDefaults()
 	fmt.Fprintln(os.Stderr, "  Commands:")
 }
 
@@ -138,10 +132,10 @@ func NewRoot(name, version, commit, date string) (*RootCmd, error) {
 }
 
 func (c *RootCmd) Execute(args []string) error {
-	if err := c.FlagSet.Parse(args); err != nil {
+	if err := c.Parse(args); err != nil {
 		return NewUserError(err, fmt.Sprintf("flag parse error %s", err.Error()))
 	}
-	remainingArgs := c.FlagSet.Args()
+	remainingArgs := c.Args()
 	if len(remainingArgs) > 0 {
 		if cmd, ok := c.Commands[remainingArgs[0]]; ok {
 			return cmd.Execute(remainingArgs[1:])
