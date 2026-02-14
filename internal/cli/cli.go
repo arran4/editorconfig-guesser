@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-// Run is a subcommand `guess`
+// Run is a subcommand `ecguess`
 // Flags:
 // 	saveFlag: -s --save (default: false) Save the file as .editorconfig
 // 	verboseFlag: -v --verbose (default: false) Logs more than what is required

@@ -16,7 +16,7 @@ var (
 )
 
 func main() {
-	root, err := NewRoot("guess", version, commit, date)
+	root, err := NewRoot("ecguess", version, commit, date)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)

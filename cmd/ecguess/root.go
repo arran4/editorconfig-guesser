@@ -153,7 +153,7 @@ func (c *RootCmd) Execute(args []string) error {
 
 	if c.CommandAction != nil {
 		if err := c.CommandAction(c); err != nil {
-			return fmt.Errorf("guess failed: %w", err)
+			return fmt.Errorf("ecguess failed: %w", err)
 		}
 	}
 	return nil
