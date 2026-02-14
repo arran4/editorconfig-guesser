@@ -5,8 +5,10 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
 	"os"
 
+	"editorconfig-guesser/cmd/ecguess/templates"
 	"editorconfig-guesser/internal/cli"
 )
 
@@ -44,15 +46,16 @@ func NewUserError(err error, msg string) *UserError {
 	return &UserError{Err: err, Msg: msg}
 }
 
+func executeUsage(out io.Writer, templateName string, data interface{}) error {
+	return templates.GetTemplates().ExecuteTemplate(out, templateName, data)
+}
+
 type RootCmd struct {
 	*flag.FlagSet
 	Commands      map[string]Cmd
 	Version       string
 	Commit        string
 	Date          string
-	saveFlag      bool
-	verboseFlag   bool
-	args          []string
 	CommandAction func(c *RootCmd) error
 }
 
@@ -69,6 +72,7 @@ func (c *RootCmd) UsageRecursive() {
 	fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
 	c.PrintDefaults()
 	fmt.Fprintln(os.Stderr, "  Commands:")
+	fmt.Fprintf(os.Stderr, "    %s\n", "generate")
 }
 
 func NewRoot(name, version, commit, date string) (*RootCmd, error) {
@@ -81,18 +85,13 @@ func NewRoot(name, version, commit, date string) (*RootCmd, error) {
 	}
 	c.FlagSet.Usage = c.Usage
 
-	c.BoolVar(&c.saveFlag, "save", false, "Save the file as .editorconfig")
-	c.BoolVar(&c.saveFlag, "s", false, "Save the file as .editorconfig")
-
-	c.BoolVar(&c.verboseFlag, "verbose", false, "Logs more than what is required")
-	c.BoolVar(&c.verboseFlag, "v", false, "Logs more than what is required")
-
 	c.CommandAction = func(c *RootCmd) error {
 
-		cli.Run(c.saveFlag, c.verboseFlag, c.args...)
+		cli.Root()
 		return nil
 	}
 
+	c.Commands["generate"] = c.NewGenerate()
 	c.Commands["help"] = &InternalCommand{
 		Exec: func(args []string) error {
 			for _, arg := range args {
@@ -140,15 +139,6 @@ func (c *RootCmd) Execute(args []string) error {
 		if cmd, ok := c.Commands[remainingArgs[0]]; ok {
 			return cmd.Execute(remainingArgs[1:])
 		}
-	}
-	// Handle vararg args
-	{
-		varArgStart := 0
-		if varArgStart > len(remainingArgs) {
-			varArgStart = len(remainingArgs)
-		}
-		varArgs := remainingArgs[varArgStart:]
-		c.args = varArgs
 	}
 
 	if c.CommandAction != nil {
