@@ -12,7 +12,7 @@ require (
 )
 
 require (
-	github.com/arran4/go-subcommand v0.0.12 // indirect
+	github.com/arran4/go-subcommand v0.0.17 // indirect
 	github.com/danwakefield/fnmatch v0.0.0-20160403171240-cbb64ac3d964 // indirect
 	golang.org/x/mod v0.32.0 // indirect
 	golang.org/x/net v0.49.0 // indirect

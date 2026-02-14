@@ -13,9 +13,10 @@ import (
 
 // Run is a subcommand `ecguess`
 // Flags:
-//   saveFlag: -s --save (default: false) Save the file as .editorconfig
-//   verboseFlag: -v --verbose (default: false) Logs more than what is required
-//   args: ... Directories
+// 	saveFlag: -s --save (default: false) Save the file as .editorconfig
+// 	verboseFlag: -v --verbose (default: false) Logs more than what is required
+// 	args: ... Directories
+//
 func Run(saveFlag bool, verboseFlag bool, args ...string) {
 	log.SetFlags(log.Flags() | log.Lshortfile)
 	if len(args) == 0 {
