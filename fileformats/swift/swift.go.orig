@@ -13,7 +13,6 @@ var (
 	//go:embed "ectemplate"
 	ectemplate []byte
 	globs      = []string{"*.swift"}
-	tmpl       = template.Must(template.New("swift").Parse(string(ectemplate)))
 )
 
 type Format struct {
@@ -69,7 +68,7 @@ func (l *Format) End() ([]*ecg.SummaryResult, error) {
 
 func (l *Format) String() (string, error) {
 	b := bytes.NewBuffer(nil)
-	t := tmpl
+	t := template.Must(template.New("").Parse(string(ectemplate)))
 	var allFiles *ecg.BasicSurveyor
 	if l.everyFileSurveyor == nil {
 		allFiles = l.surveyor

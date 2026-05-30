@@ -13,6 +13,7 @@ var (
 	//go:embed "ectemplate"
 	ectemplate []byte
 	globs      = []string{"*.kt"}
+	tmpl       = template.Must(template.New("kotlin").Parse(string(ectemplate)))
 )
 
 type Format struct {
@@ -68,7 +69,7 @@ func (l *Format) End() ([]*ecg.SummaryResult, error) {
 
 func (l *Format) String() (string, error) {
 	b := bytes.NewBuffer(nil)
-	t := template.Must(template.New("").Parse(string(ectemplate)))
+	t := tmpl
 	var allFiles *ecg.BasicSurveyor
 	if l.everyFileSurveyor == nil {
 		allFiles = l.surveyor
