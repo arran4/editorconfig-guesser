@@ -319,6 +319,8 @@ jobs:
         - name: Test
           run: go test ./... -v
 
+
+
   go-vet:
       name: Go vet
       needs: [route, discover]
@@ -377,10 +379,8 @@ jobs:
           shell: bash
           run: |
             set -euo pipefail
-            if [[ "${{ needs.discover.outputs.has_go }}" == "true" ]]; then
-              go fix ./... || true
-              go fmt ./... || true
-            fi
+            go fix ./... || true
+            go fmt ./... || true
 
   cleanup-autofix-prs:
       name: Cleanup autofix PRs on parent close
