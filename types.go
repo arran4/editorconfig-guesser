@@ -354,16 +354,16 @@ func (l *BasicSurveyor) TabWidthLineLengthCalc() (string, string) {
 			}
 		}
 	}
-	slices.SortFunc(depthKeys, func(a, b int) bool {
+	slices.SortFunc(depthKeys, func(a, b int) int {
 		al := len(tabWidths[a].DepthCount)
 		bl := len(tabWidths[b].DepthCount)
 		if al != bl {
-			return al < bl
+			return bl - al
 		}
 		if tabWidths[b].MaxStep != tabWidths[a].MaxStep {
-			return tabWidths[b].MaxStep < tabWidths[a].MaxStep
+			return tabWidths[a].MaxStep - tabWidths[b].MaxStep
 		}
-		return a >= b
+		return b - a
 	})
 	lengths := maps.Keys(tabWidths[depthKeys[0]].DepthCount)
 	sort.Sort(sort.Reverse(sort.IntSlice(lengths)))

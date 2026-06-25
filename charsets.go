@@ -19,8 +19,8 @@ type CharSetSummary struct {
 
 func (s *CharSetSummary) BestFit() string {
 	ks := maps.Keys(s.Sets)
-	slices.SortFunc(ks, func(a, b string) bool {
-		return s.Sets[a] > s.Sets[b]
+	slices.SortFunc(ks, func(a, b string) int {
+		return s.Sets[b] - s.Sets[a]
 	})
 	if len(ks) > 0 {
 		return ks[0]
@@ -30,8 +30,8 @@ func (s *CharSetSummary) BestFit() string {
 
 func (s *CharSetSummary) Distribution(total int) string {
 	ks := maps.Keys(s.Sets)
-	slices.SortFunc(ks, func(a, b string) bool {
-		return s.Sets[a] > s.Sets[b]
+	slices.SortFunc(ks, func(a, b string) int {
+		return s.Sets[b] - s.Sets[a]
 	})
 	r := &strings.Builder{}
 	for i, e := range ks {
