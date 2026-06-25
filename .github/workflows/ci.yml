@@ -323,45 +323,7 @@ jobs:
 
 
 
-  go-vet:
-      name: Go vet
-      needs: [route, discover]
-      if: ${{ needs.discover.outputs.has_go == 'true' && needs.route.outputs.run_code_checks == 'true' && needs.discover.outputs.profile == 'public' }}
-      runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@v4
-        - uses: actions/setup-go@v6
-          with:
-            go-version-file: go.mod
-            cache: true
-        - run: go vet ./...
 
-  go-fmt-pr:
-      name: go fmt -> PR (manual dispatch)
-      needs: [route, discover]
-      if: ${{ needs.discover.outputs.has_go == 'true' && github.event_name == 'workflow_dispatch' && inputs.mode == 'lint-fix' && inputs.allow_prs == true }}
-      runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@v4
-        - uses: actions/setup-go@v6
-          with:
-            go-version-file: go.mod
-        - name: Run go fmt
-          run: go fmt ./...
-        - name: Create PR if go fmt changed files
-          env:
-            GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          run: |
-            set -euo pipefail
-            git diff --quiet && { echo "No fmt changes"; exit 0; }
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            BRANCH="ci/gofmt/${{ github.run_id }}"
-            git checkout -b "$BRANCH"
-            git add -A
-            git commit -m "ci: go fmt"
-            git push origin "$BRANCH"
-            gh pr create --title "ci: go fmt" --body "Automated go fmt from manual dispatch." --base main --head "$BRANCH" --label "ci-autofix"
 
   autofix:
       name: Auto-format and open PR
