@@ -1,3 +1,4 @@
+// Package shell provides shell format.
 package shell
 
 import (
@@ -24,20 +25,24 @@ var (
 	}
 )
 
+// Format ...
 type Format struct {
 	surveyor          map[string]*ecg.BasicSurveyor
 	everyFileSurveyor *ecg.BasicSurveyor
 	matches           int
 }
 
+// SetBasicSurveyor ...
 func (l *Format) SetBasicSurveyor(af *ecg.BasicSurveyor) {
 	l.everyFileSurveyor = af
 }
 
+// Init ...
 func (l *Format) Init() ([]*ecg.SummaryResult, error) {
 	return nil, nil
 }
 
+// RunFile ...
 func (l *Format) RunFile(f *ecg.File) ([]*ecg.SummaryResult, error) {
 	var match []string
 	for _, gs := range globs {
@@ -71,6 +76,7 @@ func (l *Format) RunFile(f *ecg.File) ([]*ecg.SummaryResult, error) {
 	return nil, nil
 }
 
+// End ...
 func (l *Format) End() ([]*ecg.SummaryResult, error) {
 	if l.matches == 0 {
 		return nil, nil
@@ -95,11 +101,13 @@ func (l *Format) End() ([]*ecg.SummaryResult, error) {
 	return results, nil
 }
 
+// Surveyor ...
 type Surveyor struct {
 	everyFileSurveyor *ecg.BasicSurveyor
 	surveyor          *ecg.BasicSurveyor
 }
 
+// String ...
 func (l *Surveyor) String() (string, error) {
 	b := bytes.NewBuffer(nil)
 	t := template.Must(template.New("").Parse(string(ectemplate)))

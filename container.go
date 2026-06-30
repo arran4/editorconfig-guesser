@@ -5,12 +5,14 @@ import (
 	"sync"
 )
 
+// FileRunner ...
 type FileRunner interface {
 	Init() ([]*SummaryResult, error)
 	RunFile(f *File) ([]*SummaryResult, error)
 	End() ([]*SummaryResult, error)
 }
 
+// NewContainer ...
 func NewContainer(name string, fr FileRunner) *Container {
 	return &Container{
 		name:       name,
@@ -18,6 +20,7 @@ func NewContainer(name string, fr FileRunner) *Container {
 	}
 }
 
+// Container ...
 type Container struct {
 	sync.WaitGroup
 	reader  chan *File
@@ -27,10 +30,12 @@ type Container struct {
 	FileRunner
 }
 
+// Name ...
 func (l *Container) Name() string {
 	return l.name
 }
 
+// Start ...
 func (l *Container) Start() chan *File {
 	l.reader = make(chan *File)
 	l.Add(1)
@@ -38,11 +43,13 @@ func (l *Container) Start() chan *File {
 	return l.reader
 }
 
+// Done ...
 func (l *Container) Done() ([]*SummaryResult, error) {
 	l.Wait()
 	return l.summary, l.error()
 }
 
+// Run ...
 func (l *Container) Run() {
 	defer l.WaitGroup.Done()
 	if sr, err := l.Init(); err != nil {

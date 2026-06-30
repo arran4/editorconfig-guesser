@@ -1,3 +1,4 @@
+// Package gnumake provides gnumake format.
 package gnumake
 
 import (

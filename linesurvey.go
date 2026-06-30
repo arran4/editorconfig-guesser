@@ -75,7 +75,7 @@ func LineSurveySample(b []byte) *LineSurvey {
 			if count == -1 {
 				count = 0
 			}
-			ls.LineLengths[LineLengthDetail{length: (end) - (lastLF + 1), tabIndentation: count}] += 1
+			ls.LineLengths[LineLengthDetail{length: (end) - (lastLF + 1), tabIndentation: count}]++
 			lineTabCount = 0
 			lastLF = i
 		case '\t':

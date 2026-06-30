@@ -159,7 +159,7 @@ func NewBasicSurveyor() *BasicSurveyor {
 
 // ReadFile ...
 func (l *BasicSurveyor) ReadFile(fd *File) (string, bool, *LineSurvey, error) {
-	l.Files += 1
+	l.Files++
 	f, err := fd.Open()
 	if err != nil {
 		return "", false, nil, fmt.Errorf("opening %s: %w", fd.Filename, err)
@@ -200,32 +200,32 @@ func (l *BasicSurveyor) ReadFile(fd *File) (string, bool, *LineSurvey, error) {
 	}
 	switch charset {
 	case "UTF-8":
-		l.CharacterSets.Utf8 += 1
+		l.CharacterSets.Utf8++
 	case "UTF-16BE":
-		l.CharacterSets.Utf16Be += 1
+		l.CharacterSets.Utf16Be++
 	case "UTF-16LE":
-		l.CharacterSets.Utf16Le += 1
+		l.CharacterSets.Utf16Le++
 	case "ISO-8859-1":
-		l.CharacterSets.Latin1 += 1
+		l.CharacterSets.Latin1++
 	case "":
 	default:
-		l.CharacterSets.OtherTotal += 1
+		l.CharacterSets.OtherTotal++
 	}
-	l.CharacterSets.Sets[charset] += 1
+	l.CharacterSets.Sets[charset]++
 	if finalNewLine {
-		l.finalNewLineBalance.True += 1
+		l.finalNewLineBalance.True++
 	} else {
-		l.finalNewLineBalance.False += 1
+		l.finalNewLineBalance.False++
 	}
 	if survey.LinuxNewlinesPercent() >= .80 { // 20% threshold
-		l.lineEndings.Unix += 1
+		l.lineEndings.Unix++
 	} else if survey.WindowNewlinesPercent() >= .8 { // 80% threshold
-		l.lineEndings.Windows += 1
+		l.lineEndings.Windows++
 	}
 	if !survey.TrailingWhitespaceCommon() {
-		l.trailingSpaceOkay.True += 1
+		l.trailingSpaceOkay.True++
 	} else {
-		l.trailingSpaceOkay.False += 1
+		l.trailingSpaceOkay.False++
 	}
 	for k, v := range survey.LineLengths {
 		l.lineLengths[k] += v
