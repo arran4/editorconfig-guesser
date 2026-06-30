@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 )
 
+// NewPresence ...
 func NewPresence(name string, globs []string, ectemplate []byte) FileFormat {
 	return NewContainer(name, &Presence{
 		globs:      globs,
@@ -13,6 +14,7 @@ func NewPresence(name string, globs []string, ectemplate []byte) FileFormat {
 	})
 }
 
+// Presence ...
 type Presence struct {
 	globs      []string
 	ectemplate []byte
@@ -20,11 +22,13 @@ type Presence struct {
 	summary    []*SummaryResult
 }
 
+// Init ...
 func (l *Presence) Init() ([]*SummaryResult, error) {
 	l.matched = map[int]struct{}{}
 	return nil, nil
 }
 
+// RunFile ...
 func (l *Presence) RunFile(f *File) ([]*SummaryResult, error) {
 	for gsi, gs := range l.globs {
 		_, fn := filepath.Split(f.Filename)
@@ -51,18 +55,22 @@ func (l *Presence) RunFile(f *File) ([]*SummaryResult, error) {
 	return nil, nil
 }
 
+// ErrorStringerWrapperStruct ...
 type ErrorStringerWrapperStruct struct {
 	stringer fmt.Stringer
 }
 
+// String ...
 func (e *ErrorStringerWrapperStruct) String() (string, error) {
 	return e.stringer.String(), nil
 }
 
+// ErrorStringerWrapper ...
 func ErrorStringerWrapper(stringer fmt.Stringer) ErrorStringer {
 	return &ErrorStringerWrapperStruct{stringer: stringer}
 }
 
+// End ...
 func (l *Presence) End() ([]*SummaryResult, error) {
 	return l.summary, nil
 }

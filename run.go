@@ -1,3 +1,4 @@
+// Package ecg guesses the editorconfig settings of a project.
 package ecg
 
 import (
@@ -12,13 +13,14 @@ var (
 	rootectemplate []byte
 )
 
+// RunInDir ...
 func RunInDir(dir fs.FS, ignore func(file *File) bool) (string, error) {
 	ff := FileFormats()
 	chans := make([]chan *File, 0, len(ff))
 	for _, eff := range ff {
 		chans = append(chans, eff.Start())
 	}
-	fn := func(path string, d fs.DirEntry, err error) error {
+	fn := func(path string, d fs.DirEntry, _ error) error {
 		if d == nil || d.IsDir() {
 			return nil
 		}

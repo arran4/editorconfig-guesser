@@ -1,9 +1,12 @@
+// Package ecg guesses the editorconfig settings of a project.
 package ecg
 
 import "bytes"
 
+// LineLengthDetail ...
 type LineLengthDetail struct{ length, tabIndentation int }
 
+// LineSurvey ...
 type LineSurvey struct {
 	NewLines         int
 	WhitespacePrefix map[string]int
@@ -12,11 +15,13 @@ type LineSurvey struct {
 	LineLengths      map[LineLengthDetail]int
 }
 
+// TrailingWhitespaceCommon ...
 func (survey *LineSurvey) TrailingWhitespaceCommon() bool {
 	// TODO this is too simplistic -- I don't know what circumstance this would be for.... Request PR / case study
 	return len(survey.WhitespaceSuffix) > 5
 }
 
+// LinuxNewlinesPercent ...
 func (survey *LineSurvey) LinuxNewlinesPercent() float64 {
 	if survey.NewLines == 0 {
 		return 0
@@ -24,6 +29,7 @@ func (survey *LineSurvey) LinuxNewlinesPercent() float64 {
 	return float64(survey.NewLines-survey.WindowNewlines) / float64(survey.NewLines)
 }
 
+// WindowNewlinesPercent ...
 func (survey *LineSurvey) WindowNewlinesPercent() float64 {
 	if survey.NewLines == 0 {
 		return 0
@@ -31,6 +37,7 @@ func (survey *LineSurvey) WindowNewlinesPercent() float64 {
 	return float64(survey.WindowNewlines) / float64(survey.NewLines)
 }
 
+// LineSurveySample ...
 func LineSurveySample(b []byte) *LineSurvey {
 	ls := &LineSurvey{
 		NewLines:         0,
@@ -68,7 +75,7 @@ func LineSurveySample(b []byte) *LineSurvey {
 			if count == -1 {
 				count = 0
 			}
-			ls.LineLengths[LineLengthDetail{length: (end) - (lastLF + 1), tabIndentation: count}] += 1
+			ls.LineLengths[LineLengthDetail{length: (end) - (lastLF + 1), tabIndentation: count}]++
 			lineTabCount = 0
 			lastLF = i
 		case '\t':

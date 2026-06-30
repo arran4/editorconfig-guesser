@@ -1,3 +1,4 @@
+// Package kotlin provides kotlin format.
 package kotlin
 
 import (
@@ -16,20 +17,24 @@ var (
 	tmpl       = template.Must(template.New("kotlin").Parse(string(ectemplate)))
 )
 
+// Format ...
 type Format struct {
 	surveyor          *ecg.BasicSurveyor
 	everyFileSurveyor *ecg.BasicSurveyor
 	matches           int
 }
 
+// SetBasicSurveyor ...
 func (l *Format) SetBasicSurveyor(af *ecg.BasicSurveyor) {
 	l.everyFileSurveyor = af
 }
 
+// Init ...
 func (l *Format) Init() ([]*ecg.SummaryResult, error) {
 	return nil, nil
 }
 
+// RunFile ...
 func (l *Format) RunFile(f *ecg.File) ([]*ecg.SummaryResult, error) {
 	match := false
 	for _, gs := range globs {
@@ -52,6 +57,7 @@ func (l *Format) RunFile(f *ecg.File) ([]*ecg.SummaryResult, error) {
 	return nil, nil
 }
 
+// End ...
 func (l *Format) End() ([]*ecg.SummaryResult, error) {
 	if l.matches == 0 {
 		return nil, nil
@@ -67,6 +73,7 @@ func (l *Format) End() ([]*ecg.SummaryResult, error) {
 	}, nil
 }
 
+// String ...
 func (l *Format) String() (string, error) {
 	b := bytes.NewBuffer(nil)
 	t := tmpl
