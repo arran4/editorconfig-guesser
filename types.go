@@ -1,3 +1,4 @@
+// Package ecg guesses the editorconfig settings of a project.
 package ecg
 
 import (
@@ -7,8 +8,7 @@ import (
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/saintfish/chardet"
 	"golang.org/x/exp/maps"
-	"golang.org/x/exp/slices"
-	"io"
+		"io"
 	"io/fs"
 	"log"
 	"math"
@@ -21,6 +21,7 @@ import (
 // Contraster Provides contrasts two SummaryResults from the same file format for the purpose of consolidation -- future -- maybe
 type Contraster func(s1, s2 *SummaryResult) int
 
+// ErrorStringer ...
 type ErrorStringer interface {
 	String() (string, error)
 }
@@ -78,6 +79,7 @@ func (fd *File) Open() (io.ReadSeekCloser, error) {
 	return os.Open(fd.Filename)
 }
 
+// IsBinary ...
 func (fd *File) IsBinary() bool {
 	fh, err := fd.Open()
 	if err != nil {
@@ -115,6 +117,7 @@ type FileFormat interface {
 	Done() ([]*SummaryResult, error)
 }
 
+// BasicSurveyor ...
 type BasicSurveyor struct {
 	InsertFinalNewline     string
 	Charset                string
@@ -143,6 +146,7 @@ type BasicSurveyor struct {
 	whitespacePrefixes map[string]int
 }
 
+// NewBasicSurveyor ...
 func NewBasicSurveyor() *BasicSurveyor {
 	return &BasicSurveyor{
 		CharacterSets: &CharSetSummary{
@@ -153,6 +157,7 @@ func NewBasicSurveyor() *BasicSurveyor {
 	}
 }
 
+// ReadFile ...
 func (l *BasicSurveyor) ReadFile(fd *File) (string, bool, *LineSurvey, error) {
 	l.Files += 1
 	f, err := fd.Open()
@@ -231,6 +236,7 @@ func (l *BasicSurveyor) ReadFile(fd *File) (string, bool, *LineSurvey, error) {
 	return charset, finalNewLine, survey, nil
 }
 
+// Summarize ...
 func (l *BasicSurveyor) Summarize() {
 	if l.FinalNewLineBalanceTruePercent() > .80 {
 		l.InsertFinalNewline = "true"
@@ -260,6 +266,7 @@ func (l *BasicSurveyor) Summarize() {
 	l.IndentSize = l.IndentSizeCalc()
 }
 
+// WindowsLineEndingPercent ...
 func (l *BasicSurveyor) WindowsLineEndingPercent() float64 {
 	if l.Files > 0 {
 		return float64(l.lineEndings.Windows) / float64(l.Files)
@@ -267,6 +274,7 @@ func (l *BasicSurveyor) WindowsLineEndingPercent() float64 {
 	return 0
 }
 
+// UnixLineEndingPercent ...
 func (l *BasicSurveyor) UnixLineEndingPercent() float64 {
 	if l.Files > 0 {
 		return float64(l.lineEndings.Unix) / float64(l.Files)
@@ -274,6 +282,7 @@ func (l *BasicSurveyor) UnixLineEndingPercent() float64 {
 	return 0
 }
 
+// FinalNewLineBalanceTruePercent ...
 func (l *BasicSurveyor) FinalNewLineBalanceTruePercent() float64 {
 	if l.Files > 0 {
 		return float64(l.finalNewLineBalance.True) / float64(l.Files)
@@ -281,6 +290,7 @@ func (l *BasicSurveyor) FinalNewLineBalanceTruePercent() float64 {
 	return 0
 }
 
+// FinalNewLineBalanceFalsePercent ...
 func (l *BasicSurveyor) FinalNewLineBalanceFalsePercent() float64 {
 	if l.Files > 0 {
 		return float64(l.finalNewLineBalance.False) / float64(l.Files)
@@ -288,6 +298,7 @@ func (l *BasicSurveyor) FinalNewLineBalanceFalsePercent() float64 {
 	return 0
 }
 
+// TrailingSpaceOkayPercent ...
 func (l *BasicSurveyor) TrailingSpaceOkayPercent() float64 {
 	if l.Files > 0 {
 		return float64(l.trailingSpaceOkay.True) / float64(l.Files)
@@ -295,6 +306,7 @@ func (l *BasicSurveyor) TrailingSpaceOkayPercent() float64 {
 	return 0
 }
 
+// TabPercent ...
 func (l *BasicSurveyor) TabPercent() float64 {
 	count := 0
 	total := 0
@@ -310,20 +322,22 @@ func (l *BasicSurveyor) TabPercent() float64 {
 	return float64(count) / float64(total)
 }
 
+// MinMax ...
 func MinMax(array []int) (int, int) {
-	max := array[0]
-	min := array[0]
+	maxVal := array[0]
+	minVal := array[0]
 	for _, value := range array {
-		if max < value {
-			max = value
+		if maxVal < value {
+			maxVal = value
 		}
-		if min > value {
-			min = value
+		if minVal > value {
+			minVal = value
 		}
 	}
-	return min, max
+	return minVal, maxVal
 }
 
+// TabWidthLineLengthCalc ...
 func (l *BasicSurveyor) TabWidthLineLengthCalc() (string, string) {
 	if len(l.lineLengths) == 0 {
 		return "", ""
@@ -354,17 +368,19 @@ func (l *BasicSurveyor) TabWidthLineLengthCalc() (string, string) {
 			}
 		}
 	}
-	slices.SortFunc(depthKeys, func(a, b int) int {
+	sort.Slice(depthKeys, func(i, j int) bool {
+		a := depthKeys[i]
+		b := depthKeys[j]
 		al := len(tabWidths[a].DepthCount)
 		bl := len(tabWidths[b].DepthCount)
 		if al != bl {
-			return bl - al
+			return al < bl
 		}
 		if tabWidths[b].MaxStep != tabWidths[a].MaxStep {
-			return tabWidths[a].MaxStep - tabWidths[b].MaxStep
+			return tabWidths[b].MaxStep < tabWidths[a].MaxStep
 		}
-		return b - a
-	})
+		return a >= b
+		})
 	lengths := maps.Keys(tabWidths[depthKeys[0]].DepthCount)
 	sort.Sort(sort.Reverse(sort.IntSlice(lengths)))
 	p := 0
@@ -377,12 +393,14 @@ func (l *BasicSurveyor) TabWidthLineLengthCalc() (string, string) {
 	return "8", ""
 }
 
+// SpaceMaxLineLengthCalc ...
 func (l *BasicSurveyor) SpaceMaxLineLengthCalc() string {
 	// TODO skip tab stuff
 	d, _ := l.TabWidthLineLengthCalc()
 	return d
 }
 
+// IndentSizeCalc ...
 func (l *BasicSurveyor) IndentSizeCalc() string {
 	all := maps.Keys(l.whitespacePrefixes)
 	sort.Strings(all)
@@ -429,10 +447,12 @@ func (l *BasicSurveyor) IndentSizeCalc() string {
 	return fmt.Sprintf("%d", len(longestRun.RunStr))
 }
 
+// BasicSurveyorGetter ...
 type BasicSurveyorGetter interface {
 	BasicSurveyor() *BasicSurveyor
 }
 
+// BasicSurveyorSetter ...
 type BasicSurveyorSetter interface {
 	SetBasicSurveyor(af *BasicSurveyor)
 }

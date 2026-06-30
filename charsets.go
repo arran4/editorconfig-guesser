@@ -1,12 +1,14 @@
+// Package ecg guesses the editorconfig settings of a project.
 package ecg
 
 import (
 	"fmt"
 	"golang.org/x/exp/maps"
-	"golang.org/x/exp/slices"
+		"sort"
 	"strings"
 )
 
+// CharSetSummary ...
 type CharSetSummary struct {
 	Latin1     int `value:"latin1"`
 	Utf8       int `value:"utf-8"`
@@ -17,22 +19,28 @@ type CharSetSummary struct {
 	OtherTotal int
 }
 
+// BestFit ...
 func (s *CharSetSummary) BestFit() string {
 	ks := maps.Keys(s.Sets)
-	slices.SortFunc(ks, func(a, b string) int {
-		return s.Sets[b] - s.Sets[a]
-	})
+	sort.Slice(ks, func(i, j int) bool {
+		a := ks[i]
+		b := ks[j]
+		return s.Sets[a] > s.Sets[b]
+		})
 	if len(ks) > 0 {
 		return ks[0]
 	}
 	return ""
 }
 
+// Distribution ...
 func (s *CharSetSummary) Distribution(total int) string {
 	ks := maps.Keys(s.Sets)
-	slices.SortFunc(ks, func(a, b string) int {
-		return s.Sets[b] - s.Sets[a]
-	})
+	sort.Slice(ks, func(i, j int) bool {
+		a := ks[i]
+		b := ks[j]
+		return s.Sets[a] > s.Sets[b]
+		})
 	r := &strings.Builder{}
 	for i, e := range ks {
 		if i > 0 {
