@@ -7,7 +7,7 @@
     # charset = ??? {{$.Charsets }}
 {{end -}}
 {{ if $.TrimTrailingWhitespace -}}
-    trim_trailing_whitespace = true
+    trim_trailing_whitespace = {{$.TrimTrailingWhitespace}}
 {{end -}}
 {{ if $.EndOfLine -}}
     end_of_line = {{ $.EndOfLine }}
