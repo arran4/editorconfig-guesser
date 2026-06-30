@@ -18,6 +18,7 @@ import (
 	_ "editorconfig-guesser/fileformats/ruby"
 	_ "editorconfig-guesser/fileformats/rust"
 	_ "editorconfig-guesser/fileformats/shell"
+	_ "editorconfig-guesser/fileformats/svelte"
 	_ "editorconfig-guesser/fileformats/swift"
 	_ "editorconfig-guesser/fileformats/typescript"
 	_ "editorconfig-guesser/fileformats/xml"
